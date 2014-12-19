@@ -73,6 +73,8 @@
 start
   = ((statement:(Comment/UMLElements/Statments) __) { return statement; })*
 
+
+
 /* ----- A.1 Lexical Grammar ----- */
 SourceCharacter
   = .
@@ -295,7 +297,7 @@ StereotypeSpotExpression
   }
   
 StereotypeExpression 
-  = spot:( _ StereotypeSpotExpression _ )? id:Identifier {
+  = spot:( _ StereotypeSpotExpression _ )? id:$((Identifier _)+) {
     return {
       name:id,
       spot: extractOptional(spot,1)
@@ -337,6 +339,8 @@ PropertyExpression
 /* ----- A.4 Statements ----- */
 Statments
  = ElementRelationship
+ / ConstantDefinition
+ / DocFormatHide
 
 ElementRelationship
   = lhs:Identifier 
@@ -353,6 +357,26 @@ ElementRelationship
 		direction: extractOptional(lbl,5)
 	};
   }
+
+ConstantDefinition
+ = "!define" WhiteSpace key:Identifier WhiteSpace sub:$((!LineTerminatorSequence SourceCharacter)+){
+    return {
+      type: "define",
+      search: key,
+      replacement: sub
+    };
+  }
+ 
+ DocFormatHide 
+  = HideToken _ selector:$( (UMLObject (_ Stereotype )?) / Annotation / EmptyLiteral ) 
+    _ element:$( "stereotype"/"method")? {
+    return {
+      type: "hide",
+      selector: selector,
+      element: element
+    }
+  }
+
  
 /* ----- A.5 UMLElements ----- */
 
