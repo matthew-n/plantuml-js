@@ -106,8 +106,13 @@ __
 _
   = WSP*
 
+LineBreak
+  = CRLF
+  / LF
+  / CR
+  
 EOS
-  = $(( LF / CRLF / CR / ";")+) // new-line or ; terminated statements
+  = $(( LineBreak / ";")+)  // new-line or ; terminated statements
   / $(WSP* & "}" )              // new of enum/class body
   / $(WSP* &SQUOTE)             // begining of comment
   
