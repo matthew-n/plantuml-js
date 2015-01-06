@@ -117,7 +117,7 @@ EOS
   / $(WSP* &SQUOTE)             // begining of comment
   
 Identifier
-  = !ReservedWord name:$(IdentifierStart (IdentifierPart)*) { return name; }
+  = $(!ReservedWord IdentifierStart (IdentifierPart)*)
 
 Comment
   = SQUOTE comment:$(SourceCharacter*) {
@@ -293,7 +293,7 @@ StereotypeSpotExpression
   }
   
 StereotypeExpression 
-  = _ spot:(StereotypeSpotExpression _ )? id:$((Identifier)+) {
+  = _ spot:(StereotypeSpotExpression _ )? id:$(Identifier+) {
     return {
       name:id,
       spot: extractOptional(spot,1)
