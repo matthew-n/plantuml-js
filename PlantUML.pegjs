@@ -262,10 +262,19 @@ RelationExpression
     };
   }
   
+LabelTerminator
+ = "<" 
+ / ">"
+ / EOS
+ 
+LabelText
+  = $( !":" _ (StringLiteral / (!LabelTerminator SourceCharacter)+) )
+  
 LabelExpression
- = !(":") _ text:( StringLiteral / $( (!( "<" / ">" / EOS) SourceCharacter)+)) {
+  =  ":" _ text:LabelText _ arrow:LabelTerminator {
    return {
-        contents: text.trim()
+      text: text, 
+      direction: arrow
    }
  }
 
@@ -341,17 +350,16 @@ Statment
 
 ElementRelationship
   = lhs:Identifier 
-    lhs_card:( _ StringLiteral)?
+    lhs_card:( __ StringLiteral)?
      _ rel:RelationExpression _
-    rhs_card:(StringLiteral _ )?
+    rhs_card:(StringLiteral __ )?
     rhs:Identifier 
-    lbl:( _ ":" _ LabelExpression _ ( "<" / ">" / EOS) )? {
+    lbl:( _ LabelExpression) ? {
     return {
         left: {ref: lhs, cardinality: extractOptional(lhs_card,1) },
         right: {ref: rhs, cardinality: extractOptional(rhs_card,0) },
         relationship: rel,
-        label: extractOptional(lbl,3),
-        direction: extractOptional(lbl,5)
+        label: extractOptional(lbl,1)
     };
   }
 
