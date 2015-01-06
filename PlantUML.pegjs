@@ -89,13 +89,13 @@ SourceCharacter
   
 IdentifierStart
   = ALPHA
-  / "_"i
+  / "_"
  
 IdentifierPart
   = DIGIT 
   / ALPHA
-  / "_"i
-  / "."i
+  / "_"
+  / "."
   
 LineTerminator
   = LF 
