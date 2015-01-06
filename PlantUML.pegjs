@@ -107,9 +107,16 @@ SQUOTE
   
 LineTerminatorSequence "end of line"
   = $( LF / CRLF / CR /  "\u2028" / "\u2029" )
+/*-- Skipped --*/
+__
+  = WSP+
+_
+  = WSP*
      
-Identifier
-  = !ReservedWord name:IdentifierName { return name; }
+EOS
+  = $(( LF / CRLF / CR / ";")+) // new-line or ; terminated statements
+  / $(WSP* & "}" )              // new of enum/class body
+  / $(WSP* &SQUOTE)             // begining of comment
 
 IdentifierName "identifier"
   = first:IdentifierStart rest:IdentifierPart* {
@@ -148,17 +155,6 @@ HexIntegerLiteral
       return { type: "Literal", value: parseInt(digits, 16) };
   }
   
-/*-- Skipped --*/
-__
-  = (WSP)+
-_
-  = (WSP)*
-
-EOS
-  = ( (LineTerminatorSequence/ ";"))+ { return ""}
-  / _ & "}" 
-  / _ & "'"
-    
 /*-- Words --*/
 
 ReservedWord 
