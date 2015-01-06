@@ -85,7 +85,7 @@ instruction
   
 /* ----- A.1 Lexical Grammar ----- */
 SourceCharacter
-  = .
+  = !(LF/CR) .
   
 IdentifierStart
   = ALPHA
@@ -102,6 +102,8 @@ LineTerminator
   / CR 
   / "\u2028"
   / "\u2029"
+SQUOTE
+  = "'"
   
 LineTerminatorSequence "end of line"
   = $( LF / CRLF / CR /  "\u2028" / "\u2029" )
@@ -118,7 +120,9 @@ IdentifierName "identifier"
     }
     
 Comment
-  = "'" comment:$((!LineTerminator SourceCharacter)*) {return {type:"comment", text:comment};}
+  = SQUOTE comment:$(SourceCharacter*) {
+      return {type:"comment", text:comment};
+    }
   
 /* Literals */
 StringLiteral "string"
@@ -127,11 +131,7 @@ StringLiteral "string"
     }
  
 DoubleStringCharacter
-  = !('"' / "\\" / LineTerminator) SourceCharacter { return text(); }
-  / LineContinuation
-
-SingleStringCharacter
-  = !("'" / "\\" / LineTerminator) SourceCharacter { return text(); }
+  = !(DQUOTE / "\\") SourceCharacter
   / LineContinuation
 
 LineContinuation
@@ -365,7 +365,7 @@ ElementRelationship
   }
 
 ConstantDefinition
- = "!define" WSP key:Identifier WSP sub:$((!LineTerminator SourceCharacter)+){
+ = "!define" WSP key:Identifier WSP sub:$(SourceCharacter+) {
     return {
       type: "define",
       search: key,
