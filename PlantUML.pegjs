@@ -494,6 +494,7 @@ HTAB
 LF
   = "\x0A"
 
+//FIXME: added LF WSP, refactor to get away from this.
 LWSP
   = $(WSP / LF WSP / CRLF WSP)*
 
