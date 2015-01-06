@@ -97,16 +97,9 @@ IdentifierPart
   / "_"
   / "."
   
-LineTerminator
-  = LF 
-  / CR 
-  / "\u2028"
-  / "\u2029"
 SQUOTE
   = "'"
   
-LineTerminatorSequence "end of line"
-  = $( LF / CRLF / CR /  "\u2028" / "\u2029" )
 /*-- Skipped --*/
 __
   = WSP+
@@ -118,13 +111,8 @@ EOS
   / $(WSP* & "}" )              // new of enum/class body
   / $(WSP* &SQUOTE)             // begining of comment
 
-IdentifierName "identifier"
-  = first:IdentifierStart rest:IdentifierPart* {
-      return {
-        type: "Identifier",
-        name: first + rest.join("")
-      };
-    }
+Identifier
+  = !ReservedWord name:$(IdentifierStart (IdentifierPart)*) { return name; }
     
 Comment
   = SQUOTE comment:$(SourceCharacter*) {
@@ -142,7 +130,7 @@ DoubleStringCharacter
   / LineContinuation
 
 LineContinuation
-  = "\\" LineTerminatorSequence { return ""; }
+  = "\\" $( LF / CR / CRLF )
 
 NullLiteral
   = NullToken { return { type: "Literal", value: null }; }
