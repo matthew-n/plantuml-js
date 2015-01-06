@@ -105,7 +105,7 @@ __
   = WSP+
 _
   = WSP*
-
+  
 LineBreak
   = CRLF
   / LF
@@ -113,8 +113,8 @@ LineBreak
   
 EOS
   = $(( LineBreak / ";")+)  // new-line or ; terminated statements
-  / $(WSP* & "}" )              // new of enum/class body
-  / $(WSP* &SQUOTE)             // begining of comment
+  / $(WSP* & "}" )          // new of enum/class body
+  / $(WSP* &SQUOTE)         // begining of comment
   
 Identifier
   = $(!ReservedWord IdentifierStart (IdentifierPart)*)
@@ -261,7 +261,7 @@ RelationExpression
       body: body
     };
   }
-  
+
 LabelTerminator
  = "<" 
  / ">"
@@ -272,11 +272,11 @@ LabelText
   
 LabelExpression
   =  ":" _ text:LabelText _ arrow:LabelTerminator {
-   return {
+    return { 
       text: text, 
       direction: arrow
-   }
- }
+    }
+  }
 
 AttributeExpression
   = "{" $(Identifier/NullLiteral) "}"
@@ -364,7 +364,7 @@ ElementRelationship
   }
 
 ConstantDefinition
- = "!define" WSP key:Identifier WSP sub:$(SourceCharacter+) {
+ = "!define" __ key:Identifier __ sub:$(SourceCharacter+) {
     return {
       type: "define",
       search: key,
@@ -493,7 +493,7 @@ HTAB
 
 LF
   = "\x0A"
-
+  
 //FIXME: added LF WSP, refactor to get away from this.
 LWSP
   = $(WSP / LF WSP / CRLF WSP)*
