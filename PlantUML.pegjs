@@ -191,6 +191,7 @@ SetToken    = "set"    !IdentifierPart
 
 /* Reserved Words */
 EndToken    = "end"    !IdentifierPart
+EndHeaderToken = "end" __ HeaderToken
 
 /* Symbols */
 PrivateToken        = "-" 
@@ -377,9 +378,9 @@ BlockElement
   / HeaderBlock
  
 HeaderBlock
-  = HeaderToken EOS 
-    body:$( (!(EOS EndToken __ HeaderToken) SourceCharacter)*)
-    EOS EndToken __ HeaderToken {
+  = HeaderToken 
+    LineBreak body:$( !EndHeaderToken SourceCharacter* ) LineBreak
+    EndHeaderToken {
     return {
       type: "header block",
       body: body.trim()
