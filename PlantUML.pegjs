@@ -96,7 +96,7 @@ IdentifierPart
   / ALPHA
   / "_"
   / "."
-  
+
 SQUOTE
   = "'"
   
@@ -105,15 +105,15 @@ __
   = WSP+
 _
   = WSP*
-     
+
 EOS
   = $(( LF / CRLF / CR / ";")+) // new-line or ; terminated statements
   / $(WSP* & "}" )              // new of enum/class body
   / $(WSP* &SQUOTE)             // begining of comment
-
+  
 Identifier
   = !ReservedWord name:$(IdentifierStart (IdentifierPart)*) { return name; }
-    
+
 Comment
   = SQUOTE comment:$(SourceCharacter*) {
       return {type:"comment", text:comment};
@@ -142,7 +142,7 @@ HexIntegerLiteral
   = "#"i digits:$HEXDIG+ {
       return { type: "Literal", value: parseInt(digits, 16) };
   }
-  
+
 /*-- Words --*/
 
 ReservedWord 
@@ -308,12 +308,12 @@ MethodExpression
        type: "method",
        name: id,
        data_type: dtype,
-       scope: extractOptional(scope,1)||undefined
+       scope: extractOptional(scope,0)||undefined
      }
    }
   
 PropertyExpression
-   = _ scope:( ScopeModifier __)?
+   = _ scope:( ScopeModifier _)?
      id:Identifier ":" _ dtype:DatatypeExpression
      attrib:( _ AttributeExpression)?
      stereo:( _ Stereotype)? _ {
@@ -321,7 +321,7 @@ PropertyExpression
        type: "property",
        name: id,
        data_type: dtype,
-       scope: extractOptional(scope,1)||undefined,
+       scope: extractOptional(scope,0)||undefined,
        stereotype: extractOptional(stereo,1)
      }
    }
