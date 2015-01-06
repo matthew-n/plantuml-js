@@ -133,8 +133,8 @@ Comment
   
 /* Literals */
 StringLiteral "string"
-  = '"' chars:DoubleStringCharacter* '"' {
-      return { type: "Literal", value: chars.join("") };
+  = DQUOTE chars:$(DoubleStringCharacter)* DQUOTE {
+      return { type: "Literal", value: chars };
     }
  
 DoubleStringCharacter
@@ -279,7 +279,7 @@ AttributeExpression
   = "{" $(Identifier/NullLiteral) "}"
 
 ArrayExpression
-  = dtype:Identifier "[" size:$([0-9]*)? "]"{
+  = dtype:Identifier "[" size:$(DIGIT*)? "]"{
     return {
       type: "array",
       size: size
