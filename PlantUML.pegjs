@@ -88,32 +88,24 @@ SourceCharacter
   = .
   
 IdentifierStart
-  = [_a-z]i
+  = ALPHA
+  / "_"i
  
 IdentifierPart
-  = [_a-z0-9\.]i
-  
-HexDigit
-  = [0-9a-f]i
+  = DIGIT 
+  / ALPHA
+  / "_"i
+  / "."i
   
 LineTerminator
-  = [\n\r\u2028\u2029]
-  
-LineTerminatorSequence "end of line"
-  = "\n"
-  / "\r\n"
-  / "\r"
+  = LF 
+  / CR 
   / "\u2028"
   / "\u2029"
   
-WhiteSpace "whitespace"
-  = "\t"
-  / "\v"
-  / "\f"
-  / " "
-  / "\u00A0"
-  / "\uFEFF"
- 
+LineTerminatorSequence "end of line"
+  = $( LF / CRLF / CR /  "\u2028" / "\u2029" )
+     
 Identifier
   = !ReservedWord name:IdentifierName { return name; }
 
@@ -152,15 +144,15 @@ EmptyLiteral
   = EmptyToken { return { type: "Literal", value: "empty" }; }
   
 HexIntegerLiteral
-  = "#"i digits:$HexDigit+ {
+  = "#"i digits:$HEXDIG+ {
       return { type: "Literal", value: parseInt(digits, 16) };
   }
   
 /*-- Skipped --*/
 __
-  = (WhiteSpace)+
+  = (WSP)+
 _
-  = (WhiteSpace)*
+  = (WSP)*
 
 EOS
   = ( (LineTerminatorSequence/ ";"))+ { return ""}
@@ -373,7 +365,7 @@ ElementRelationship
   }
 
 ConstantDefinition
- = "!define" WhiteSpace key:Identifier WhiteSpace sub:$((!LineTerminator SourceCharacter)+){
+ = "!define" WSP key:Identifier WSP sub:$((!LineTerminator SourceCharacter)+){
     return {
       type: "define",
       search: key,
@@ -421,7 +413,7 @@ ClassBody
 ClassDeclaration
   = ClassToken __ id:Identifier 
     stereotype:( _ Stereotype )? 
-    body:( _ "{" (WhiteSpace /LineTerminator)* ClassBody  (WhiteSpace /LineTerminator)* "}" )?  {
+    body:( _ "{" LWSP ClassBody  LWSP "}" )?  {
     return {
       umlobjtype: "class",
       id: id,
@@ -445,7 +437,7 @@ EnumBody
  
 EnumDeclaration
   = EnumToken __ id:Identifier 
-    body:( _ "{" (WhiteSpace /LineTerminator)* EnumBody (WhiteSpace /LineTerminator)*"}" )?  {
+    body:( _ "{" LWSP EnumBody LWSP "}" )?  {
     return {
       umlobjtype: "enum",
       id: id,
@@ -453,3 +445,70 @@ EnumDeclaration
     };
   }
  
+ 
+ /*
+ * Augmented BNF for Syntax Specifications: ABNF
+ *
+ * http://tools.ietf.org/html/rfc5234
+ */
+
+/* http://tools.ietf.org/html/rfc5234#appendix-B Core ABNF of ABNF */
+ALPHA
+  = [\x41-\x5A]
+  / [\x61-\x7A]
+
+BIT
+  = "0"
+  / "1"
+
+CHAR
+  = [\x01-\x7F]
+
+CR
+  = "\x0D"
+
+CRLF
+  = CR LF
+
+CTL
+  = [\x00-\x1F]
+  / "\x7F"
+
+DIGIT
+  = [\x30-\x39]
+
+DQUOTE
+  = [\x22]
+
+HEXDIG
+  = DIGIT
+  / "A"i
+  / "B"i
+  / "C"i
+  / "D"i
+  / "E"i
+  / "F"i
+
+HTAB
+  = "\x09"
+
+LF
+  = "\x0A"
+
+LWSP
+  = $(WSP / LF WSP / CRLF WSP)*
+
+OCTET
+  = [\x00-\xFF]
+
+SP
+  = "\x20"
+
+VCHAR
+  = [\x21-\x7E]
+
+WSP
+  = SP
+  / HTAB
+  
+  
