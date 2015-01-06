@@ -16,7 +16,7 @@
   }
 
   function extractOptional(optional, index) {
-    return optional ? optional[index] : null;
+    return optional ? optional[index] : undefined;
   }
 
   function extractList(list, index) {
@@ -308,7 +308,7 @@ MethodExpression
        type: "method",
        name: id,
        data_type: dtype,
-       scope: extractOptional(scope,0)||undefined
+       scope: extractOptional(scope,0)
      }
    }
   
@@ -321,7 +321,8 @@ PropertyExpression
        type: "property",
        name: id,
        data_type: dtype,
-       scope: extractOptional(scope,0)||undefined,
+	   attributes: extractOptional(attrib,1),
+       scope: extractOptional(scope,0),
        stereotype: extractOptional(stereo,1)
      }
    }
