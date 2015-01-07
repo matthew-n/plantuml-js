@@ -139,48 +139,7 @@ Annotation
   
 /*-- Tokens --*/
 
-/* litterals */
-EmptyToken  = "empty"i    !IdentifierPart
 
-/* UML Objects */
-ClassToken   = "class"i   !IdentifierPart
-EnumToken    = "enum"i    !IdentifierPart
-PackageToken = "package"i !IdentifierPart
-
-/* Annotations */
-TitleToken  = "title "i   !IdentifierPart
-HeaderToken = "header"i   !IdentifierPart
-FooterToken = "footer"i   !IdentifierPart
-LegendToken = "legend"i   !IdentifierPart
-NoteToken   = "note"i     !IdentifierPart
-
-/* Render Commands */
-HideToken   = "hide"i  !IdentifierPart
-SetToken    = "set"i   !IdentifierPart
-
-/* Reserved Words */
-EndToken    = "end"i   !IdentifierPart
-EndHeaderToken = EndToken __ HeaderToken
-
-/* Symbols */
-PrivateToken        = "-" 
-ProtectedToken      = "#" 
-PackagePrivateToken = "~" 
-PublicToken         = "+"
-
-StereotypeOpenToken  = "<<"
-StereotypeCloseToken = ">>"
-
-LeftExtendsToken  = "<|"
-RightExtendsToken = "|>"
-RightArrowToken   = ">"  
-LeftArrowToken    = "<"
-CompositionToken  = "o"  
-AggregationToken  = "*"
-InterfaceToken    =  "()"
-
-SolidLineToken  = "-" 
-BrokenLineToken = "." 
 
 /* ----- A.2 Number Conversions ----- */
 
@@ -417,6 +376,49 @@ EnumDeclaration
     };
   }
  
+/* -----      const strings         ----- */
+/* litterals */
+EmptyToken  = "empty"i    !IdentifierPart
+
+/* UML Objects */
+ClassToken   = "class"i   !IdentifierPart
+EnumToken    = "enum"i    !IdentifierPart
+PackageToken = "package"i !IdentifierPart
+
+/* Annotations */
+TitleToken  = "title "i   !IdentifierPart
+HeaderToken = "header"i   !IdentifierPart
+FooterToken = "footer"i   !IdentifierPart
+LegendToken = "legend"i   !IdentifierPart
+NoteToken   = "note"i     !IdentifierPart
+
+/* Render Commands */
+HideToken   = "hide"i  !IdentifierPart
+SetToken    = "set"i   !IdentifierPart
+
+/* Reserved Words */
+EndToken    = "end"i   !IdentifierPart
+EndHeaderToken = EndToken __ HeaderToken
+
+/* Symbols */
+PrivateToken        = "-" 
+ProtectedToken      = "#" 
+PackagePrivateToken = "~" 
+PublicToken         = "+"
+
+StereotypeOpenToken  = "<<"
+StereotypeCloseToken = ">>"
+
+LeftExtendsToken  = "<|"
+RightExtendsToken = "|>"
+RightArrowToken   = ">"  
+LeftArrowToken    = "<"
+CompositionToken  = "o"  
+AggregationToken  = "*"
+InterfaceToken    =  "()"
+
+SolidLineToken  = "-" 
+BrokenLineToken = "." 
  SourceCharacter
   = !(LF/CR) .
   
