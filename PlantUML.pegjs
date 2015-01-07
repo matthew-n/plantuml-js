@@ -16,7 +16,7 @@
   }
 
   function extractOptional(optional, index) {
-    return optional ? optional[index] : null;
+    return optional ? optional[index] : undefined;
   }
 
   function extractList(list, index) {
@@ -85,95 +85,70 @@ instruction
   
 /* ----- A.1 Lexical Grammar ----- */
 SourceCharacter
-  = .
+  = !(LF/CR) .
   
 IdentifierStart
-  = [_a-z]i
+  = ALPHA
+  / "_"
  
 IdentifierPart
-  = [_a-z0-9\.]i
-  
-HexDigit
-  = [0-9a-f]i
-  
-LineTerminator
-  = [\n\r\u2028\u2029]
-  
-LineTerminatorSequence "end of line"
-  = "\n"
-  / "\r\n"
-  / "\r"
-  / "\u2028"
-  / "\u2029"
-  
-WhiteSpace "whitespace"
-  = "\t"
-  / "\v"
-  / "\f"
-  / " "
-  / "\u00A0"
-  / "\uFEFF"
- 
-Identifier
-  = !ReservedWord name:IdentifierName { return name; }
+  = DIGIT 
+  / ALPHA
+  / "_"
+  / "."
 
-IdentifierName "identifier"
-  = first:IdentifierStart rest:IdentifierPart* {
-      return {
-        type: "Identifier",
-        name: first + rest.join("")
-      };
-    }
-    
+SQUOTE
+  = "'"
+  
+/*-- Skipped --*/
+__
+  = WSP+
+_
+  = WSP*
+  
+LineBreak
+  = WSP* (CRLF  / LF  / CR ) WSP*
+  
+EOS
+  = $(LineBreak / (WSP* ";" WSP*))+  // new-line or ; terminated statements
+  / $(WSP* & "}" )                    // new of enum/class body
+  / $(WSP* &SQUOTE)                   // begining of comment
+  
+Identifier
+  = $(!ReservedWord IdentifierStart (IdentifierPart)*)
+
 Comment
-  = "'" comment:$((!LineTerminator SourceCharacter)*) {return {type:"comment", text:comment};}
+  = SQUOTE comment:$(SourceCharacter*) {
+      return {type:"comment", text:comment};
+    }
   
 /* Literals */
 StringLiteral "string"
-  = '"' chars:DoubleStringCharacter* '"' {
-      return { type: "Literal", value: chars.join("") };
+  = DQUOTE chars:$(DoubleStringCharacter)* DQUOTE {
+      return { type: "Literal", value: chars };
     }
  
 DoubleStringCharacter
-  = !('"' / "\\" / LineTerminator) SourceCharacter { return text(); }
-  / LineContinuation
-
-SingleStringCharacter
-  = !("'" / "\\" / LineTerminator) SourceCharacter { return text(); }
+  = !(DQUOTE / "\\") SourceCharacter
   / LineContinuation
 
 LineContinuation
-  = "\\" LineTerminatorSequence { return ""; }
-
-NullLiteral
-  = NullToken { return { type: "Literal", value: null }; }
-  
+  = "\\" $( LF / CR / CRLF )
+ 
 EmptyLiteral
   = EmptyToken { return { type: "Literal", value: "empty" }; }
   
 HexIntegerLiteral
-  = "#"i digits:$HexDigit+ {
+  = "#"i digits:$HEXDIG+ {
       return { type: "Literal", value: parseInt(digits, 16) };
   }
-  
-/*-- Skipped --*/
-__
-  = (WhiteSpace)+
-_
-  = (WhiteSpace)*
 
-EOS
-  = ( (LineTerminatorSequence/ ";"))+ { return ""}
-  / _ & "}" 
-  / _ & "'"
-    
 /*-- Words --*/
 
 ReservedWord 
   = RenderCommands
   / UMLObject
   / Annotation
-  / NullLiteral
   / EmptyLiteral
 
 RenderCommands 
@@ -194,27 +169,27 @@ Annotation
 /*-- Tokens --*/
 
 /* litterals */
-NullToken   = "null"   !IdentifierPart
-EmptyToken  = "empty"  !IdentifierPart
+EmptyToken  = "empty"i    !IdentifierPart
 
 /* UML Objects */
-ClassToken   = "class"   !IdentifierPart
-EnumToken    = "enum"    !IdentifierPart
-PackageToken = "package" !IdentifierPart
+ClassToken   = "class"i   !IdentifierPart
+EnumToken    = "enum"i    !IdentifierPart
+PackageToken = "package"i !IdentifierPart
 
 /* Annotations */
-TitleToken  = "title " !IdentifierPart
-HeaderToken = "header" !IdentifierPart
-FooterToken = "footer" !IdentifierPart
-LegendToken = "legend" !IdentifierPart
-NoteToken   = "note"   !IdentifierPart
+TitleToken  = "title "i   !IdentifierPart
+HeaderToken = "header"i   !IdentifierPart
+FooterToken = "footer"i   !IdentifierPart
+LegendToken = "legend"i   !IdentifierPart
+NoteToken   = "note"i     !IdentifierPart
 
 /* Render Commands */
-HideToken   = "hide"   !IdentifierPart
-SetToken    = "set"    !IdentifierPart
+HideToken   = "hide"i  !IdentifierPart
+SetToken    = "set"i   !IdentifierPart
 
 /* Reserved Words */
-EndToken    = "end"    !IdentifierPart
+EndToken    = "end"i   !IdentifierPart
+EndHeaderToken = EndToken __ HeaderToken
 
 /* Symbols */
 PrivateToken        = "-" 
@@ -279,21 +254,39 @@ RelationExpression
       body: body
     };
   }
+
+LabelTerminator
+ = "<" 
+ / ">"
+ / EOS
+ 
+LabelText
+  = $( !":" _ (StringLiteral / (!LabelTerminator SourceCharacter)+) )
   
 LabelExpression
- = !(":") _ text:( StringLiteral / $( (!( "<" / ">" / EOS) SourceCharacter)+)) {
-   return {
-        contents: text.trim()
-   }
- }
+  =  ":" _ text:LabelText _ arrow:LabelTerminator {
+    return { 
+      text: text, 
+      direction: arrow
+    }
+  }
 
+AttributeMembers
+  = item:$(_ Identifier)* _ {return item.trim() }
+
+AttributeBody 
+  = first:AttributeMembers rest:("," AttributeMembers)*  {
+    return buildList(first,rest,1)
+  }
+  
 AttributeExpression
-  = "{" $(Identifier/NullLiteral) "}"
+  = "{" list:AttributeBody "}" { return list; }
 
 ArrayExpression
-  = dtype:Identifier "[" size:$([0-9]*)? "]"{
+  = dtype:Identifier "[" size:$(DIGIT*)? "]"{
     return {
       type: "array",
+      basetype: dtype,
       size: size
     }
   }
@@ -311,7 +304,7 @@ StereotypeSpotExpression
   }
   
 StereotypeExpression 
-  = _ spot:(StereotypeSpotExpression _ )? id:$((Identifier)+) {
+  = _ spot:(StereotypeSpotExpression _ )? id:$(Identifier+) {
     return {
       name:id,
       spot: extractOptional(spot,1)
@@ -332,12 +325,12 @@ MethodExpression
        type: "method",
        name: id,
        data_type: dtype,
-       scope: extractOptional(scope,1)||undefined
+       scope: extractOptional(scope,0)
      }
    }
   
 PropertyExpression
-   = _ scope:( ScopeModifier __)?
+   = _ scope:( ScopeModifier _)?
      id:Identifier ":" _ dtype:DatatypeExpression
      attrib:( _ AttributeExpression)?
      stereo:( _ Stereotype)? _ {
@@ -345,7 +338,8 @@ PropertyExpression
        type: "property",
        name: id,
        data_type: dtype,
-       scope: extractOptional(scope,1)||undefined,
+	   attributes: extractOptional(attrib,1),
+       scope: extractOptional(scope,0),
        stereotype: extractOptional(stereo,1)
      }
    }
@@ -358,22 +352,21 @@ Statment
 
 ElementRelationship
   = lhs:Identifier 
-    lhs_card:( _ StringLiteral)?
+    lhs_card:( __ StringLiteral)?
      _ rel:RelationExpression _
-    rhs_card:(StringLiteral _ )?
+    rhs_card:(StringLiteral __ )?
     rhs:Identifier 
-    lbl:( _ ":" _ LabelExpression _ ( "<" / ">" / EOS) )? {
+    lbl:( _ LabelExpression) ? {
     return {
         left: {ref: lhs, cardinality: extractOptional(lhs_card,1) },
         right: {ref: rhs, cardinality: extractOptional(rhs_card,0) },
         relationship: rel,
-        label: extractOptional(lbl,3),
-        direction: extractOptional(lbl,5)
+        label: extractOptional(lbl,1)
     };
   }
 
 ConstantDefinition
- = "!define" WhiteSpace key:Identifier WhiteSpace sub:$((!LineTerminator SourceCharacter)+){
+ = "!define" __ key:Identifier __ sub:$(SourceCharacter+) {
     return {
       type: "define",
       search: key,
@@ -400,9 +393,9 @@ BlockElement
   / HeaderBlock
  
 HeaderBlock
-  = HeaderToken EOS 
-    body:$( (!(EOS EndToken __ HeaderToken) SourceCharacter)*)
-    EOS EndToken __ HeaderToken {
+  = HeaderToken 
+    LineBreak body:$( !EndHeaderToken SourceCharacter* ) LineBreak
+    EndHeaderToken {
     return {
       type: "header block",
       body: body.trim()
@@ -421,7 +414,7 @@ ClassBody
 ClassDeclaration
   = ClassToken __ id:Identifier 
     stereotype:( _ Stereotype )? 
-    body:( _ "{" (WhiteSpace /LineTerminator)* ClassBody  (WhiteSpace /LineTerminator)* "}" )?  {
+    body:( _ "{" LineBreak* ClassBody  LineBreak* "}" )?  {
     return {
       umlobjtype: "class",
       id: id,
@@ -431,7 +424,7 @@ ClassDeclaration
   }
     
 EnumMembers
-  = id:Identifier {
+  = _ id:Identifier {
     return {
       type:"enum member",
       name: id
@@ -445,7 +438,7 @@ EnumBody
  
 EnumDeclaration
   = EnumToken __ id:Identifier 
-    body:( _ "{" (WhiteSpace /LineTerminator)* EnumBody (WhiteSpace /LineTerminator)*"}" )?  {
+    body:( _ "{" LineBreak* EnumBody LineBreak* "}" )?  {
     return {
       umlobjtype: "enum",
       id: id,
@@ -453,3 +446,70 @@ EnumDeclaration
     };
   }
  
+ 
+ /*
+ * Augmented BNF for Syntax Specifications: ABNF
+ *
+ * http://tools.ietf.org/html/rfc5234
+ */
+
+/* http://tools.ietf.org/html/rfc5234#appendix-B Core ABNF of ABNF */
+ALPHA
+  = [\x41-\x5A]
+  / [\x61-\x7A]
+
+BIT
+  = "0"
+  / "1"
+
+CHAR
+  = [\x01-\x7F]
+
+CR
+  = "\x0D"
+
+CRLF
+  = CR LF
+
+CTL
+  = [\x00-\x1F]
+  / "\x7F"
+
+DIGIT
+  = [\x30-\x39]
+
+DQUOTE
+  = [\x22]
+
+HEXDIG
+  = DIGIT
+  / "A"i
+  / "B"i
+  / "C"i
+  / "D"i
+  / "E"i
+  / "F"i
+
+HTAB
+  = "\x09"
+
+LF
+  = "\x0A"
+
+LWSP
+  = $(WSP / CRLF WSP)*
+
+OCTET
+  = [\x00-\xFF]
+
+SP
+  = "\x20"
+
+VCHAR
+  = [\x21-\x7E]
+
+WSP
+  = SP
+  / HTAB
+  
+  
