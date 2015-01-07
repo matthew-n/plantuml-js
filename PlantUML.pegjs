@@ -84,35 +84,6 @@ instruction
   / Statment
   
 /* ----- A.1 Lexical Grammar ----- */
-SourceCharacter
-  = !(LF/CR) .
-  
-IdentifierStart
-  = ALPHA
-  / "_"
- 
-IdentifierPart
-  = DIGIT 
-  / ALPHA
-  / "_"
-  / "."
-
-SQUOTE
-  = "'"
-  
-/*-- Skipped --*/
-__
-  = WSP+
-_
-  = WSP*
-  
-LineBreak
-  = WSP* (CRLF  / LF  / CR ) WSP*
-  
-EOS
-  = $(LineBreak / (WSP* ";" WSP*))+  // new-line or ; terminated statements
-  / $(WSP* & "}" )                    // new of enum/class body
-  / $(WSP* &SQUOTE)                   // begining of comment
   
 Identifier
   = $(!ReservedWord IdentifierStart (IdentifierPart)*)
@@ -446,6 +417,33 @@ EnumDeclaration
     };
   }
  
+ SourceCharacter
+  = !(LF/CR) .
+  
+IdentifierStart
+  = ALPHA
+  / "_"
+ 
+IdentifierPart
+  = DIGIT 
+  / ALPHA
+  / "_"
+  / "."
+
+SQUOTE
+  = "'"
+__
+  = WSP+
+_
+  = WSP*
+  
+LineBreak
+  = WSP* (CRLF  / LF  / CR ) WSP*
+  
+EOS
+  = $(LineBreak / (WSP* ";" WSP*))+  // new-line or ; terminated statements
+  / $(WSP* & "}" )                    // new of enum/class body
+  / $(WSP* &SQUOTE)                   // begining of comment
  
  /*
  * Augmented BNF for Syntax Specifications: ABNF
