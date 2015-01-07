@@ -94,25 +94,7 @@ Comment
     }
   
 /* Literals */
-StringLiteral "string"
-  = DQUOTE chars:$(DoubleStringCharacter)* DQUOTE {
-      return { type: "Literal", value: chars };
-    }
  
-DoubleStringCharacter
-  = !(DQUOTE / "\\") SourceCharacter
-  / LineContinuation
-
-LineContinuation
-  = "\\" $( LF / CR / CRLF )
- 
-EmptyLiteral
-  = EmptyToken { return { type: "Literal", value: "empty" }; }
-  
-HexIntegerLiteral
-  = "#"i digits:$HEXDIG+ {
-      return { type: "Literal", value: parseInt(digits, 16) };
-  }
 
 /*-- Words --*/
 
