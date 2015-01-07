@@ -422,7 +422,7 @@ ClassDeclaration
   }
     
 EnumMembers
-  = id:Identifier {
+  = _ id:Identifier {
     return {
       type:"enum member",
       name: id
@@ -493,7 +493,7 @@ HTAB
 
 LF
   = "\x0A"
-  
+
 LWSP
   = $(WSP / CRLF WSP)*
 
