@@ -73,8 +73,17 @@
 				<tr><th>Code</th><th></th><th>Result</th></tr>
 			</thead>
 			<tbody>
-				<tr><td><pre><code>class foo</code></pre></td></tr>
 				<tr><td><pre><code>enum bar</code></pre></td></tr>
+				<tr><td><pre><code>enum bar { RED; BLUE; GREEN; } </code></pre></td></tr>
+				<tr><td><pre><code>class foo</code></pre></td></tr>
+				<tr><td><pre><code>class baz.foo</code></pre></td></tr>
+				<tr><td><pre><code>class foo { id: int}</code></pre></td></tr>
+				<tr><td><pre><code>class foo { void someMethod() }</code></pre></td></tr>
+				<tr><td><pre><code>class foo { id: int &#x3C;&#x3C;PK,SK&#x3E;&#x3E;}</code></pre></td></tr>
+				<tr><td><pre><code>class foo { meh: char[254] }</code></pre></td></tr>
+				<tr><td><pre><code>class foo { meh: int {NULL} }</code></pre></td></tr>
+				<tr><td><pre><code>class foo { meh: int {NULL} &#x3C;&#x3C;FK&#x3E;&#x3E; }</code></pre></td></tr>
+				<tr><td><pre><code>class foo { meh: int {NOT NULL} }</code></pre></td></tr>
 				<tr><td><pre><code>class region_property&#x3C;&#x3C;table&#x3E;&#x3E;{
   id: int &#x3C;&#x3C;PK,SK&#x3E;&#x3E;
   region_id: int &#x3C;&#x3C;FK&#x3E;&#x3E;
