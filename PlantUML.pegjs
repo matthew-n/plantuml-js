@@ -107,12 +107,10 @@ _
   = WSP*
   
 LineBreak
-  = CRLF
-  / LF
-  / CR
+  = WSP* (CRLF  / LF  / CR ) WSP*
   
 EOS
-  = $((WSP* LineBreak / ";" WSP* )+)  // new-line or ; terminated statements
+  = $(LineBreak / (WSP* ";" WSP*))+  // new-line or ; terminated statements
   / $(WSP* & "}" )                    // new of enum/class body
   / $(WSP* &SQUOTE)                   // begining of comment
   
