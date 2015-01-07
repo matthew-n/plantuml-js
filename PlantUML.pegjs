@@ -112,9 +112,9 @@ LineBreak
   / CR
   
 EOS
-  = $(( LineBreak / ";")+)  // new-line or ; terminated statements
-  / $(WSP* & "}" )          // new of enum/class body
-  / $(WSP* &SQUOTE)         // begining of comment
+  = $((WSP* LineBreak / ";" WSP* )+)  // new-line or ; terminated statements
+  / $(WSP* & "}" )                    // new of enum/class body
+  / $(WSP* &SQUOTE)                   // begining of comment
   
 Identifier
   = $(!ReservedWord IdentifierStart (IdentifierPart)*)
