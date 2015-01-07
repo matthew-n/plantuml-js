@@ -96,28 +96,7 @@ Comment
 /* Literals */
 
 
-/*-- Words --*/
 
-ReservedWord 
-  = RenderCommands
-  / UMLObject
-  / Annotation
-  / EmptyLiteral
-
-RenderCommands 
-  = HideToken
-  / SetToken
-  
-UMLObject
-  = ClassToken
-  / EnumToken
-  
-Annotation
-  = TitleToken
-  / HeaderToken
-  / FooterToken
-  / LegendToken
-  / NoteToken
   
 /*-- Tokens --*/
 
@@ -130,33 +109,10 @@ Annotation
 /* ----- A.3 Expressions ----- */
 
 RelationshipBody
-  = a:$(SolidLineToken+) hint:RelationshipBodyHint b:$(SolidLineToken+) { return { type: "solid", len: a.length+b.length, hint:hint } }
-  / a:$(BrokenLineToken+) hint:RelationshipBodyHint b:$(BrokenLineToken+) { return { type: "broken", len: a.length+b.length, hint:hint } }
-  / a:$(SolidLineToken+) { return { type: "solid", len: a.length} }
-  / a:$(BrokenLineToken+) { return { type: "broken", len: a.length} }
-
-RelationshipBodyHint
-  = ("up"/"down"/"left"/"right") 
-
-ScopeModifier
-  = PrivateToken {return {type:"scope modifier", value:"private"}; }
-  / ProtectedToken {return {type:"scope modifier", value:"protected"}; }
-  / PackagePrivateToken {return {type:"scope modifier", value:"package private"}; }
-  / PublicToken {return {type:"scope modifier", value:"public"}; }
-  
-RelationshipLeftEnd
-  = LeftExtendsToken {return {type:"relation end", value: "left extend"}}
-  / LeftArrowToken {return {type:"relation end", value: "left arrow"}}
-  / CompositionToken {return {type:"relation end", value: "composition"}}
-  / AggregationToken {return {type:"relation end", value: "aggregation"}}
-  / InterfaceToken {return {type: "relation end", value: "interface"}}
-
-RelationshipRightEnd
-  = RightExtendsToken {return {type:"relation end", value: "right extend"}}
-  / RightArrowToken {return {type:"relation end", value: "right arrow"}}
-  / CompositionToken {return {type:"relation end", value: "composition"}}
-  / AggregationToken {return {type:"relation end", value: "aggregation"}}
-  / InterfaceToken {return {type: "relation end", value: "interface"}}
+  = lhs:$(SolidLineToken+) hint:RelationshipBodyHint  rhs:$(SolidLineToken+) { return { type: "solid", len: lhs.length+rhs.length, hint:hint } }
+  / lhs:$(BrokenLineToken+) hint:RelationshipBodyHint rhs:$(BrokenLineToken+) { return { type: "broken", len: lhs.length+rhs.length, hint:hint } }
+  / lhs:$(SolidLineToken+) { return { type: "solid", len: lhs.length} }
+  / lhs:$(BrokenLineToken+) { return { type: "broken", len: lhs.length} }
 
 RelationExpression 
   = left:RelationshipLeftEnd? body:RelationshipBody right:RelationshipRightEnd? {
@@ -251,7 +207,6 @@ PropertyExpression
      }
    }
 
-/* ----- A.4 Statements ----- */
 Statment
  = ElementRelationship
  / ConstantDefinition
@@ -291,9 +246,6 @@ ConstantDefinition
     }
   }
 
- 
-/* ----- A.5 Block Elements ----- */
-
 BlockElement 
   = ClassDeclaration
   / EnumDeclaration
@@ -329,7 +281,7 @@ ClassDeclaration
       stereotype: extractOptional(stereotype, 1)
     };
   }
-    
+
 EnumMembers
   = _ id:Identifier {
     return {
@@ -360,9 +312,9 @@ StringLiteral "string"
     }
  
 DoubleStringCharacter
-  = !(DQUOTE / BSLASH) SourceCharacter
+  = !(DQUOTE / Escape) SourceCharacter
   / LineContinuation
-  
+
 HexIntegerLiteral
   = "#" digits:$HEXDIG+ {
       return { type: "Literal", value: parseInt(digits, 16) };
@@ -370,8 +322,57 @@ HexIntegerLiteral
   
 EmptyLiteral
   = EmptyToken { return { type: "Literal", value: "empty" }; }
+
+ScopeModifier
+  = PrivateToken   {return {type:"scope modifier", value:"private"        }; }
+  / ProtectedToken {return {type:"scope modifier", value:"protected"      }; }
+  / PackageToken   {return {type:"scope modifier", value:"package private"}; }
+  / PublicToken    {return {type:"scope modifier", value:"public"         }; }
   
+RelationshipLeftEnd
+  = LeftExtendsToken {return {type:"relation end", value: "left extend"}; }
+  / LeftArrowToken   {return {type:"relation end", value: "left arrow" }; }
+  / CompositionToken {return {type:"relation end", value: "composition"}; }
+  / AggregationToken {return {type:"relation end", value: "aggregation"}; }
+  / InterfaceToken   {return {type:"relation end", value: "interface"  }; }
+
+RelationshipRightEnd
+  = RightExtendsToken {return {type:"relation end", value: "right extend"}; }
+  / RightArrowToken   {return {type:"relation end", value: "right arrow" }; }
+  / CompositionToken  {return {type:"relation end", value: "composition" }; }
+  / AggregationToken  {return {type:"relation end", value: "aggregation" }; }
+  / InterfaceToken    {return {type:"relation end", value: "interface"   }; }
+
 /* -----      const strings         ----- */
+
+/*-- Words --*/
+ReservedWord 
+  = RenderCommands
+  / UMLObject
+  / Annotation
+  / EmptyLiteral
+
+RenderCommands 
+  = HideToken
+  / SetToken
+  
+UMLObject
+  = ClassToken
+  / EnumToken
+  
+Annotation
+  = TitleToken
+  / HeaderToken
+  / FooterToken
+  / LegendToken
+  / NoteToken
+  
+RelationshipBodyHint
+  = "up"i
+  / "down"i
+  / "left"i
+  / "right"i
+  
 /* litterals */
 EmptyToken  = "empty"i    !IdentifierPart
 
@@ -396,10 +397,10 @@ EndToken    = "end"i   !IdentifierPart
 EndHeaderToken = EndToken __ HeaderToken
 
 /* Symbols */
-PrivateToken        = "-" 
-ProtectedToken      = "#" 
-PackagePrivateToken = "~" 
-PublicToken         = "+"
+PrivateToken   = "-" 
+ProtectedToken = "#" 
+PackageToken   = "~" 
+PublicToken    = "+"
 
 StereotypeOpenToken  = "<<"
 StereotypeCloseToken = ">>"
@@ -415,15 +416,15 @@ InterfaceToken    =  "()"
 SolidLineToken  = "-" 
 BrokenLineToken = "." 
 
-/* -----  common char seq and sets  ----- */
 
+/* -----  common char seq and sets  ----- */
 LabelTerminator
  = "<" 
  / ">"
  / EOS
 
 LineContinuation
-  = BSLASH $( LF / CR / CRLF )
+  = Escape $( LF / CR / CRLF )
  
 SourceCharacter
   = !(LF/CR) .
@@ -438,8 +439,8 @@ IdentifierPart
   / "_"
   / "."
 
-BSLASH
- = "\\"
+Escape
+  = "\\"
 
 SQUOTE
   = "'"
@@ -456,6 +457,7 @@ EOS
   / $(WSP* & "}" )                    // new of enum/class body
   / $(WSP* &SQUOTE)                   // begining of comment
  
+
  /*
  * Augmented BNF for Syntax Specifications: ABNF
  *
