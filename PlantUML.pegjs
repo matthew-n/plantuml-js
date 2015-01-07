@@ -94,7 +94,7 @@ Comment
     }
   
 /* Literals */
- 
+
 
 /*-- Words --*/
 
@@ -166,7 +166,7 @@ RelationExpression
       body: body
     };
   }
-
+ 
 LabelText
   = $( !":" _ (StringLiteral / (!LabelTerminator SourceCharacter)+) )
   
@@ -352,7 +352,7 @@ EnumDeclaration
       body:  optionalList(extractOptional(body, 3)),
     };
   }
- 
+
 /* -----         Literals           ----- */
 StringLiteral "string"
   = DQUOTE chars:$(DoubleStringCharacter)* DQUOTE {
@@ -414,7 +414,18 @@ InterfaceToken    =  "()"
 
 SolidLineToken  = "-" 
 BrokenLineToken = "." 
- SourceCharacter
+
+/* -----  common char seq and sets  ----- */
+
+LabelTerminator
+ = "<" 
+ / ">"
+ / EOS
+
+LineContinuation
+  = BSLASH $( LF / CR / CRLF )
+ 
+SourceCharacter
   = !(LF/CR) .
   
 IdentifierStart
@@ -426,6 +437,9 @@ IdentifierPart
   / ALPHA
   / "_"
   / "."
+
+BSLASH
+ = "\\"
 
 SQUOTE
   = "'"
