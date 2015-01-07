@@ -185,11 +185,6 @@ RelationExpression
     };
   }
 
-LabelTerminator
- = "<" 
- / ">"
- / EOS
- 
 LabelText
   = $( !":" _ (StringLiteral / (!LabelTerminator SourceCharacter)+) )
   
@@ -376,6 +371,24 @@ EnumDeclaration
     };
   }
  
+/* -----         Literals           ----- */
+StringLiteral "string"
+  = DQUOTE chars:$(DoubleStringCharacter)* DQUOTE {
+      return { type: "Literal", value: chars };
+    }
+ 
+DoubleStringCharacter
+  = !(DQUOTE / BSLASH) SourceCharacter
+  / LineContinuation
+  
+HexIntegerLiteral
+  = "#" digits:$HEXDIG+ {
+      return { type: "Literal", value: parseInt(digits, 16) };
+  }
+  
+EmptyLiteral
+  = EmptyToken { return { type: "Literal", value: "empty" }; }
+  
 /* -----      const strings         ----- */
 /* litterals */
 EmptyToken  = "empty"i    !IdentifierPart
