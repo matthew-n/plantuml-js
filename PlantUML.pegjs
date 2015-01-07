@@ -134,10 +134,7 @@ DoubleStringCharacter
 
 LineContinuation
   = "\\" $( LF / CR / CRLF )
-
-NullLiteral
-  = NullToken { return { type: "Literal", value: null }; }
-  
+ 
 EmptyLiteral
   = EmptyToken { return { type: "Literal", value: "empty" }; }
   
@@ -152,7 +149,6 @@ ReservedWord
   = RenderCommands
   / UMLObject
   / Annotation
-  / NullLiteral
   / EmptyLiteral
 
 RenderCommands 
@@ -173,28 +169,27 @@ Annotation
 /*-- Tokens --*/
 
 /* litterals */
-NullToken   = "null"   !IdentifierPart
-EmptyToken  = "empty"  !IdentifierPart
+EmptyToken  = "empty"i    !IdentifierPart
 
 /* UML Objects */
-ClassToken   = "class"   !IdentifierPart
-EnumToken    = "enum"    !IdentifierPart
-PackageToken = "package" !IdentifierPart
+ClassToken   = "class"i   !IdentifierPart
+EnumToken    = "enum"i    !IdentifierPart
+PackageToken = "package"i !IdentifierPart
 
 /* Annotations */
-TitleToken  = "title " !IdentifierPart
-HeaderToken = "header" !IdentifierPart
-FooterToken = "footer" !IdentifierPart
-LegendToken = "legend" !IdentifierPart
-NoteToken   = "note"   !IdentifierPart
+TitleToken  = "title "i   !IdentifierPart
+HeaderToken = "header"i   !IdentifierPart
+FooterToken = "footer"i   !IdentifierPart
+LegendToken = "legend"i   !IdentifierPart
+NoteToken   = "note"i     !IdentifierPart
 
 /* Render Commands */
-HideToken   = "hide"   !IdentifierPart
-SetToken    = "set"    !IdentifierPart
+HideToken   = "hide"i  !IdentifierPart
+SetToken    = "set"i   !IdentifierPart
 
 /* Reserved Words */
-EndToken    = "end"    !IdentifierPart
-EndHeaderToken = "end" __ HeaderToken
+EndToken    = "end"i   !IdentifierPart
+EndHeaderToken = EndToken __ HeaderToken
 
 /* Symbols */
 PrivateToken        = "-" 
@@ -276,13 +271,22 @@ LabelExpression
     }
   }
 
+AttributeMembers
+  = item:$(_ Identifier)* _ {return item.trim() }
+
+AttributeBody 
+  = first:AttributeMembers rest:("," AttributeMembers)*  {
+    return buildList(first,rest,1)
+  }
+  
 AttributeExpression
-  = "{" $(Identifier/NullLiteral) "}"
+  = "{" list:AttributeBody "}" { return list; }
 
 ArrayExpression
   = dtype:Identifier "[" size:$(DIGIT*)? "]"{
     return {
       type: "array",
+      basetype: dtype,
       size: size
     }
   }
