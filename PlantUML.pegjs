@@ -412,7 +412,7 @@ ClassBody
 ClassDeclaration
   = ClassToken __ id:Identifier 
     stereotype:( _ Stereotype )? 
-    body:( _ "{" LWSP ClassBody  LWSP "}" )?  {
+    body:( _ "{" LineBreak* ClassBody  LineBreak* "}" )?  {
     return {
       umlobjtype: "class",
       id: id,
@@ -436,7 +436,7 @@ EnumBody
  
 EnumDeclaration
   = EnumToken __ id:Identifier 
-    body:( _ "{" LWSP EnumBody LWSP "}" )?  {
+    body:( _ "{" LineBreak* EnumBody LineBreak* "}" )?  {
     return {
       umlobjtype: "enum",
       id: id,
@@ -494,9 +494,8 @@ HTAB
 LF
   = "\x0A"
   
-//FIXME: added LF WSP, refactor to get away from this.
 LWSP
-  = $(WSP / LF WSP / CRLF WSP)*
+  = $(WSP / CRLF WSP)*
 
 OCTET
   = [\x00-\xFF]
