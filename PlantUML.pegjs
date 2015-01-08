@@ -79,32 +79,92 @@ instructions
   }
   
 instruction
-  = Comment
+  = Statment
   / BlockElement
-  / Statment
+  / Comment
   
-/* ----- A.1 Lexical Grammar ----- */
   
-Identifier
-  = $(!ReservedWord IdentifierStart (IdentifierPart)*)
 
-Comment
-  = SQUOTE comment:$(SourceCharacter*) {
-      return {type:"comment", text:comment};
+/* -----         Statements         ----- */
+  
+Statment
+ = ElementRelationship
+ / ConstantDefinition
+ / DocFormatHide
+
+ElementRelationship
+  = lhs:Identifier 
+    lhs_card:( __ StringLiteral)?
+     _ rel:RelationExpression _
+    rhs_card:(StringLiteral __ )?
+    rhs:Identifier 
+    lbl:( _ LabelExpression) ? {
+    return {
+        left: {ref: lhs, cardinality: extractOptional(lhs_card,1) },
+        right: {ref: rhs, cardinality: extractOptional(rhs_card,0) },
+        relationship: rel,
+        label: extractOptional(lbl,1)
+    };
+  }
+
+ConstantDefinition
+ = "!define" __ key:Identifier __ sub:$(SourceCharacter+) {
+    return {
+      type: "define",
+      search: key,
+      replacement: sub
+    };
+  }
+
+ DocFormatHide 
+  = HideToken _ selector:$( (UMLObject (_ Stereotype )?) / Annotation / EmptyLiteral ) 
+    _ element:$( "stereotype"/"method")? {
+    return {
+      type: "hide",
+      selector: selector,
+      element: element
     }
+  }
   
-/* Literals */
 
 
+/* -----       Block Elements       ----- */
+BlockElement 
+  = ClassDeclaration
+  / EnumDeclaration
+  / HeaderBlock
 
+HeaderBlock
+  = HeaderToken 
+    LineBreak body:$( !EndHeaderToken SourceCharacter* ) LineBreak
+    EndHeaderToken {
+    return {
+      type: "header block",
+      body: body.trim()
+    };
+  }
+
+ClassDeclaration
+  = ClassToken __ id:Identifier 
+    stereotype:( _ Stereotype )? 
+    body:( _ "{" LineBreak* ClassBody  LineBreak* "}" )?  {
+    return {
+      umlobjtype: "class",
+      id: id,
+      body:  extractOptional(body,3),
+      stereotype: extractOptional(stereotype, 1)
+    };
+  }
   
-/*-- Tokens --*/
-
-
-
-/* ----- A.2 Number Conversions ----- */
-
-/* Irrelevant. */
+EnumDeclaration
+  = EnumToken __ id:Identifier 
+    body:( _ "{" LineBreak* EnumBody LineBreak* "}" )?  {
+    return {
+      umlobjtype: "enum",
+      id: id,
+      body:  optionalList(extractOptional(body, 3)),
+    };
+  }
 
 /* ----- A.3 Expressions ----- */
 
@@ -207,59 +267,8 @@ PropertyExpression
      }
    }
 
-Statment
- = ElementRelationship
- / ConstantDefinition
- / DocFormatHide
 
-ElementRelationship
-  = lhs:Identifier 
-    lhs_card:( __ StringLiteral)?
-     _ rel:RelationExpression _
-    rhs_card:(StringLiteral __ )?
-    rhs:Identifier 
-    lbl:( _ LabelExpression) ? {
-    return {
-        left: {ref: lhs, cardinality: extractOptional(lhs_card,1) },
-        right: {ref: rhs, cardinality: extractOptional(rhs_card,0) },
-        relationship: rel,
-        label: extractOptional(lbl,1)
-    };
-  }
 
-ConstantDefinition
- = "!define" __ key:Identifier __ sub:$(SourceCharacter+) {
-    return {
-      type: "define",
-      search: key,
-      replacement: sub
-    };
-  }
- 
- DocFormatHide 
-  = HideToken _ selector:$( (UMLObject (_ Stereotype )?) / Annotation / EmptyLiteral ) 
-    _ element:$( "stereotype"/"method")? {
-    return {
-      type: "hide",
-      selector: selector,
-      element: element
-    }
-  }
-
-BlockElement 
-  = ClassDeclaration
-  / EnumDeclaration
-  / HeaderBlock
- 
-HeaderBlock
-  = HeaderToken 
-    LineBreak body:$( !EndHeaderToken SourceCharacter* ) LineBreak
-    EndHeaderToken {
-    return {
-      type: "header block",
-      body: body.trim()
-    };
-  }
 
 ClassElements
   = member:MethodExpression {return member;}
@@ -270,17 +279,6 @@ ClassBody
     return extractList(rest, 0)
   }
   
-ClassDeclaration
-  = ClassToken __ id:Identifier 
-    stereotype:( _ Stereotype )? 
-    body:( _ "{" LineBreak* ClassBody  LineBreak* "}" )?  {
-    return {
-      umlobjtype: "class",
-      id: id,
-      body:  extractOptional(body,3),
-      stereotype: extractOptional(stereotype, 1)
-    };
-  }
 
 EnumMembers
   = _ id:Identifier {
@@ -295,16 +293,24 @@ EnumBody
     return extractList(rest, 0)
   }  
  
-EnumDeclaration
-  = EnumToken __ id:Identifier 
-    body:( _ "{" LineBreak* EnumBody LineBreak* "}" )?  {
-    return {
-      umlobjtype: "enum",
-      id: id,
-      body:  optionalList(extractOptional(body, 3)),
-    };
+
+
+
+/* -----       Expressions          ----- */
+
+
+
+/* -----       basic stmts          ----- */
+Comment
+  = SQUOTE comment:$(SourceCharacter*) {
+      return {type:"comment", text:comment};
   }
 
+Identifier
+  = $(!ReservedWord IdentifierStart (IdentifierPart)*)
+
+
+  
 /* -----         Literals           ----- */
 StringLiteral "string"
   = DQUOTE chars:$(DoubleStringCharacter)* DQUOTE {
