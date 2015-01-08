@@ -109,7 +109,7 @@ ElementRelationship
 
 ClassDeclaration
   = ClassToken __ id:Identifier 
-    stereotype:( _ Stereotype )? 
+    stereotype:( _ StereotypeExpression )? 
     body:( _ "{" LineBreak* ClassBody  LineBreak* "}" )?  {
     return {
       umlobjtype: "class",
@@ -132,9 +132,10 @@ EnumDeclaration
 /*** Formatting Elements ***/
 FormattingElement
   = DocFormatHide
+  / SetRenderElement
   
  DocFormatHide 
-  = HideToken _ selector:$( (UMLObject (_ Stereotype )?) / Annotation / EmptyLiteral ) 
+  = HideToken __ selector:$( (UMLObject (_ StereotypeExpression)?) / Annotation / EmptyLiteral ) 
     _ element:$( "stereotype"/"method")? {
     return {
       type: "hide",
@@ -143,22 +144,82 @@ FormattingElement
     }
   }
 
+SetRenderElement
+  = SetToken __ cmd:$(NSSepToken) __ val:StringLiteral {
+    return {
+      type:"render command",
+      command: cmd,
+      value: val
+    };
+  }
 
 /*** Annotation Elements ***/
 AnnotaionElement 
-  =  HeaderBlock
+  = HeaderBlock
+  / FooterBlock
+  / TitleBlock
+  / NoteBlock
+  / LegendBlock
  
 HeaderBlock
   = HeaderToken 
-    LineBreak body:$( !EndHeaderToken SourceCharacter* ) LineBreak
+    LineBreak body:$( !(LineBreak EndHeaderToken) .)* LineBreak
     EndHeaderToken {
     return {
       type: "header block",
       body: body.trim()
     };
   }
+  
+FooterBlock
+  = FooterToken
+    LineBreak body:$( !(LineBreak EndToken __ FooterToken) .)* LineBreak
+	EndToken __ FooterToken {
+    return {
+	    type: "footer",
+		body: body.trim()
+	}
+  }
 
+TitleBlock
+  = TitleToken __ title:$(SourceCharacter*) {
+    return {
+      type: "title",
+      text: title.trim()
+    };
+  }
 
+NoteBlock
+  = NoteToken __ alias:( "as" __ Identifier)?
+    LineBreak txt:$( !(LineBreak EndToken __ NoteToken) .)* LineBreak
+    EndToken __ NoteToken
+  {
+		return {
+		  type:"note",
+		  text: txt,
+		  alias: extractOptional(alias,2)
+		};
+  }
+	/
+	NoteToken __ alias:( "as" __ Identifier __)? txt:$(SourceCharacter)* 
+  {
+		return {
+		  type:"note",
+		  text: txt,
+		  alias: extractOptional(alias,2)
+		};
+  }
+
+LegendBlock
+  = LegendToken meh:(__ Direction)?
+    LineBreak txt:$( !(LineBreak EndToken __ LegendToken) .)* LineBreak
+    EndToken __ LegendToken {
+    return {
+	  type: "legend",
+	  text: txt,
+	  direction: extractOptional(meh,1)
+    };
+  }
 
 /*** Other ***/
 ConstantDefinition
@@ -202,14 +263,14 @@ RelationExpression
   }
  
 RelationshipBody
-  = lhs:$(SolidLineToken+) hint:RelationshipBodyHint?  rhs:$(SolidLineToken*) { 
+  = lhs:$(SolidLineToken+) hint:Direction?  rhs:$(SolidLineToken*) { 
     return { 
       type: "solid", 
       len: lhs.length + rhs.length, 
       hint: hint||undefined
     } 
   }
-  / lhs:$(BrokenLineToken+) hint:RelationshipBodyHint?  rhs:$(BrokenLineToken*) { 
+  / lhs:$(BrokenLineToken+) hint:Direction?  rhs:$(BrokenLineToken*) { 
     return { 
       type: "solid", 
       len: lhs.length + rhs.length, 
@@ -238,7 +299,7 @@ PropertyExpression
    = _ scope:( ScopeModifier _)?
      id:Identifier ":" _ dtype:DatatypeExpression
      attrib:( _ AttributeExpression)?
-     stereo:( _ Stereotype)? _ {
+     stereo:( _ StereotypeExpression)? _ {
      return {
        type: "property",
        name: id,
@@ -289,21 +350,22 @@ ArrayExpression
   }
 
 /*** Stereotype Expressions ***/
-Stereotype
-  = StereotypeOpenToken 
-    first:StereotypeExpression  rest:("," StereotypeExpression)*
-    StereotypeCloseToken {
-    return buildList(first,rest,1)
+StereotypeExpression 
+  = StereotypeOpenToken
+    _ first: StereotypeTerm rest:("," StereotypeTerm)* _
+    StereotypeCloseToken 
+  {
+    return buildList(first,rest,1);
   }
 
-StereotypeExpression 
-  = _ spot:(StereotypeSpotExpression _ )? id:$(Identifier+) {
+StereotypeTerm
+  = _ spot:(StereotypeSpotExpression _ )? id:$(_ Identifier)* _ {
     return {
-      name:id,
-      spot: extractOptional(spot,1)
-    };
+	  name: id,
+	  spot: extractOptional(spot,1)
+	};
   }
-  
+
 StereotypeSpotExpression
   = "(" id:IdentifierPart "," color:(HexIntegerLiteral/id:Identifier) ")" {
     return {
@@ -363,6 +425,7 @@ ReservedWord
 RenderCommands 
   = HideToken
   / SetToken
+  / NSSepToken
   
 UMLObject
   = ClassToken
@@ -375,7 +438,7 @@ Annotation
   / LegendToken
   / NoteToken
   
-RelationshipBodyHint
+Direction
   = "up"i
   / "down"i
   / "left"i
@@ -390,7 +453,7 @@ EnumToken    = "enum"i    !IdentifierPart
 PackageToken = "package"i !IdentifierPart
 
 /* Annotations */
-TitleToken  = "title "i   !IdentifierPart
+TitleToken  = "title"i   !IdentifierPart
 HeaderToken = "header"i   !IdentifierPart
 FooterToken = "footer"i   !IdentifierPart
 LegendToken = "legend"i   !IdentifierPart
@@ -399,6 +462,7 @@ NoteToken   = "note"i     !IdentifierPart
 /* Render Commands */
 HideToken   = "hide"i  !IdentifierPart
 SetToken    = "set"i   !IdentifierPart
+NSSepToken  = "namespaceSeparator"i !IdentifierPart
 
 /* Reserved Words */
 EndToken    = "end"i   !IdentifierPart
