@@ -109,7 +109,7 @@ ElementRelationship
 
 ClassDeclaration
   = ClassToken __ id:Identifier 
-    stereotype:( _ Stereotype )? 
+    stereotype:( _ StereotypeExpression )? 
     body:( _ "{" LineBreak* ClassBody  LineBreak* "}" )?  {
     return {
       umlobjtype: "class",
@@ -134,7 +134,7 @@ FormattingElement
   = DocFormatHide
   
  DocFormatHide 
-  = HideToken _ selector:$( (UMLObject (_ Stereotype )?) / Annotation / EmptyLiteral ) 
+  = HideToken _ selector:$( (UMLObject (_ StereotypeExpression)?) / Annotation / EmptyLiteral ) 
     _ element:$( "stereotype"/"method")? {
     return {
       type: "hide",
@@ -238,7 +238,7 @@ PropertyExpression
    = _ scope:( ScopeModifier _)?
      id:Identifier ":" _ dtype:DatatypeExpression
      attrib:( _ AttributeExpression)?
-     stereo:( _ Stereotype)? _ {
+     stereo:( _ StereotypeExpression)? _ {
      return {
        type: "property",
        name: id,
@@ -289,21 +289,22 @@ ArrayExpression
   }
 
 /*** Stereotype Expressions ***/
-Stereotype
-  = StereotypeOpenToken 
-    first:StereotypeExpression  rest:("," StereotypeExpression)*
-    StereotypeCloseToken {
-    return buildList(first,rest,1)
+StereotypeExpression 
+  = StereotypeOpenToken
+    _ first: StereotypeTerm rest:("," StereotypeTerm)* _
+    StereotypeCloseToken 
+  {
+    return buildList(first,rest,1);
   }
 
-StereotypeExpression 
-  = _ spot:(StereotypeSpotExpression _ )? id:$(Identifier+) {
+StereotypeTerm
+  = _ spot:(StereotypeSpotExpression _ )? id:$(_ Identifier)* _ {
     return {
-      name:id,
-      spot: extractOptional(spot,1)
-    };
+	  name: id,
+	  spot: extractOptional(spot,1)
+	};
   }
-  
+
 StereotypeSpotExpression
   = "(" id:IdentifierPart "," color:(HexIntegerLiteral/id:Identifier) ")" {
     return {
