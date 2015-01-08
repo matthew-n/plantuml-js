@@ -132,9 +132,10 @@ EnumDeclaration
 /*** Formatting Elements ***/
 FormattingElement
   = DocFormatHide
+  / SetRenderElement
   
  DocFormatHide 
-  = HideToken _ selector:$( (UMLObject (_ StereotypeExpression)?) / Annotation / EmptyLiteral ) 
+  = HideToken __ selector:$( (UMLObject (_ StereotypeExpression)?) / Annotation / EmptyLiteral ) 
     _ element:$( "stereotype"/"method")? {
     return {
       type: "hide",
@@ -143,6 +144,14 @@ FormattingElement
     }
   }
 
+SetRenderElement
+  = SetToken __ cmd:$(NSSepToken) __ val:StringLiteral {
+    return {
+      type:"render command",
+      command: cmd,
+      value: val
+    };
+  }
 
 /*** Annotation Elements ***/
 AnnotaionElement 
@@ -364,6 +373,7 @@ ReservedWord
 RenderCommands 
   = HideToken
   / SetToken
+  / NSSepToken
   
 UMLObject
   = ClassToken
@@ -400,6 +410,7 @@ NoteToken   = "note"i     !IdentifierPart
 /* Render Commands */
 HideToken   = "hide"i  !IdentifierPart
 SetToken    = "set"i   !IdentifierPart
+NSSepToken  = "namespaceSeparator"i !IdentifierPart
 
 /* Reserved Words */
 EndToken    = "end"i   !IdentifierPart
