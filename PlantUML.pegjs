@@ -79,72 +79,281 @@ instructions
   }
   
 instruction
-  = Comment
-  / BlockElement
-  / Statment
-  
-/* ----- A.1 Lexical Grammar ----- */
-SourceCharacter
-  = !(LF/CR) .
-  
-IdentifierStart
-  = ALPHA
-  / "_"
- 
-IdentifierPart
-  = DIGIT 
-  / ALPHA
-  / "_"
-  / "."
+  = UMLStatment
+  / AnnotaionElement
+  / FormattingElement
+  / ConstantDefinition
+  / Comment
 
-SQUOTE
-  = "'"
+/* -----         Statements         ----- */
+
+UMLStatment
+  = ElementRelationship
+  / ClassDeclaration
+  / EnumDeclaration
   
-/*-- Skipped --*/
-__
-  = WSP+
-_
-  = WSP*
+ElementRelationship
+  = lhs:Identifier 
+    lhs_card:( __ StringLiteral)?
+     _ rel:RelationExpression _
+    rhs_card:(StringLiteral __ )?
+    rhs:Identifier 
+    lbl:( _ LabelExpression) ? {
+    return {
+        left: {ref: lhs, cardinality: extractOptional(lhs_card,1) },
+        right: {ref: rhs, cardinality: extractOptional(rhs_card,0) },
+        relationship: rel,
+        label: extractOptional(lbl,1)
+    };
+  }
+
+ClassDeclaration
+  = ClassToken __ id:Identifier 
+    stereotype:( _ Stereotype )? 
+    body:( _ "{" LineBreak* ClassBody  LineBreak* "}" )?  {
+    return {
+      umlobjtype: "class",
+      id: id,
+      body:  extractOptional(body,3),
+      stereotype: extractOptional(stereotype, 1)
+    };
+  }
   
-LineBreak
-  = WSP* (CRLF  / LF  / CR ) WSP*
+EnumDeclaration
+  = EnumToken __ id:Identifier 
+    body:( _ "{" LineBreak* EnumBody LineBreak* "}" )?  {
+    return {
+      umlobjtype: "enum",
+      id: id,
+      body:  optionalList(extractOptional(body, 3)),
+    };
+  }
   
-EOS
-  = $(LineBreak / (WSP* ";" WSP*))+  // new-line or ; terminated statements
-  / $(WSP* & "}" )                    // new of enum/class body
-  / $(WSP* &SQUOTE)                   // begining of comment
+/*** Formatting Elements ***/
+FormattingElement
+  = DocFormatHide
   
-Identifier
-  = $(!ReservedWord IdentifierStart (IdentifierPart)*)
+ DocFormatHide 
+  = HideToken _ selector:$( (UMLObject (_ Stereotype )?) / Annotation / EmptyLiteral ) 
+    _ element:$( "stereotype"/"method")? {
+    return {
+      type: "hide",
+      selector: selector,
+      element: element
+    }
+  }
+
+
+/*** Annotation Elements ***/
+AnnotaionElement 
+  =  HeaderBlock
+ 
+HeaderBlock
+  = HeaderToken 
+    LineBreak body:$( !EndHeaderToken SourceCharacter* ) LineBreak
+    EndHeaderToken {
+    return {
+      type: "header block",
+      body: body.trim()
+    };
+  }
+
+
+
+/*** Other ***/
+ConstantDefinition
+ = "!define" __ key:Identifier __ sub:$(SourceCharacter+) {
+    return {
+      type: "define",
+      search: key,
+      replacement: sub
+    };
+  }
 
 Comment
   = SQUOTE comment:$(SourceCharacter*) {
       return {type:"comment", text:comment};
     }
+
+
+/* -----       Expressions          ----- */
+Identifier
+  = $(!ReservedWord IdentifierStart (IdentifierPart)*)
   
-/* Literals */
+LabelText
+  = $( !":" _ (StringLiteral / (!LabelTerminator SourceCharacter)+) )
+
+LabelExpression
+  =  ":" _ text:LabelText _ arrow:LabelTerminator {
+    return { 
+      text: text, 
+      direction: arrow
+    }
+  }
+  
+ /** Relation Expression**/ 
+RelationExpression 
+  = left:RelationshipLeftEnd? body:RelationshipBody right:RelationshipRightEnd? {
+    return {
+      left: left,
+      right: right,
+      body: body
+    };
+  }
+ 
+RelationshipBody
+  = lhs:$(SolidLineToken+) hint:RelationshipBodyHint?  rhs:$(SolidLineToken*) { 
+    return { 
+      type: "solid", 
+      len: lhs.length + rhs.length, 
+      hint: hint||undefined
+    } 
+  }
+  / lhs:$(BrokenLineToken+) hint:RelationshipBodyHint?  rhs:$(BrokenLineToken*) { 
+    return { 
+      type: "solid", 
+      len: lhs.length + rhs.length, 
+      hint: hint||undefined
+    } 
+  }
+
+/*** class expressions **/
+ClassBody
+  = rest:( (MethodExpression/PropertyExpression) EOS)* {
+    return extractList(rest, 0)
+  }
+  
+MethodExpression
+  = _ scope:( ScopeModifier __ )? 
+    dtype:DatatypeExpression __ id:Identifier _ "()" {
+    return {
+       type: "method",
+       name: id,
+       data_type: dtype,
+       scope: extractOptional(scope,0)
+     }
+   }
+  
+PropertyExpression
+   = _ scope:( ScopeModifier _)?
+     id:Identifier ":" _ dtype:DatatypeExpression
+     attrib:( _ AttributeExpression)?
+     stereo:( _ Stereotype)? _ {
+     return {
+       type: "property",
+       name: id,
+       data_type: dtype,
+       attributes: extractOptional(attrib,1),
+       scope: extractOptional(scope,0),
+       stereotype: extractOptional(stereo,1)
+     }
+   }
+   
+AttributeExpression
+  = "{" list:AttributeBody "}" { return list; }
+
+AttributeBody 
+  = first:AttributeMembers rest:("," AttributeMembers)*  {
+    return buildList(first,rest,1)
+  }
+  
+AttributeMembers
+  = item:$(_ Identifier)* _ {return item.trim() }
+    
+
+/*** Enum Expressions ***/
+EnumMembers
+  = _ id:Identifier {
+    return {
+      type:"enum member",
+      name: id
+    };
+  }
+
+EnumBody 
+  = rest:(EnumMembers EOS )* {
+    return extractList(rest, 0)
+  }  
+
+DatatypeExpression
+  = ArrayExpression
+  / Identifier
+  
+ArrayExpression
+  = dtype:Identifier "[" size:$(DIGIT*)? "]"{
+    return {
+      type: "array",
+      basetype: dtype,
+      size: size
+    }
+  }
+
+/*** Stereotype Expressions ***/
+Stereotype
+  = StereotypeOpenToken 
+    first:StereotypeExpression  rest:("," StereotypeExpression)*
+    StereotypeCloseToken {
+    return buildList(first,rest,1)
+  }
+
+StereotypeExpression 
+  = _ spot:(StereotypeSpotExpression _ )? id:$(Identifier+) {
+    return {
+      name:id,
+      spot: extractOptional(spot,1)
+    };
+  }
+  
+StereotypeSpotExpression
+  = "(" id:IdentifierPart "," color:(HexIntegerLiteral/id:Identifier) ")" {
+    return {
+      shorthand:id,
+      color: color
+    };
+  }
+  
+/* -----         Literals           ----- */
 StringLiteral "string"
   = DQUOTE chars:$(DoubleStringCharacter)* DQUOTE {
       return { type: "Literal", value: chars };
     }
  
 DoubleStringCharacter
-  = !(DQUOTE / "\\") SourceCharacter
+  = !(DQUOTE / Escape) SourceCharacter
   / LineContinuation
 
-LineContinuation
-  = "\\" $( LF / CR / CRLF )
- 
-EmptyLiteral
-  = EmptyToken { return { type: "Literal", value: "empty" }; }
-  
 HexIntegerLiteral
-  = "#"i digits:$HEXDIG+ {
+  = "#" digits:$HEXDIG+ {
       return { type: "Literal", value: parseInt(digits, 16) };
   }
+  
+EmptyLiteral
+  = EmptyToken { return { type: "Literal", value: "empty" }; }
+
+ScopeModifier
+  = PrivateToken   {return {type:"scope modifier", value:"private"        }; }
+  / ProtectedToken {return {type:"scope modifier", value:"protected"      }; }
+  / PackageToken   {return {type:"scope modifier", value:"package private"}; }
+  / PublicToken    {return {type:"scope modifier", value:"public"         }; }
+  
+RelationshipLeftEnd
+  = LeftExtendsToken {return {type:"relation end", value: "left extend"}; }
+  / LeftArrowToken   {return {type:"relation end", value: "left arrow" }; }
+  / CompositionToken {return {type:"relation end", value: "composition"}; }
+  / AggregationToken {return {type:"relation end", value: "aggregation"}; }
+  / InterfaceToken   {return {type:"relation end", value: "interface"  }; }
+
+RelationshipRightEnd
+  = RightExtendsToken {return {type:"relation end", value: "right extend"}; }
+  / RightArrowToken   {return {type:"relation end", value: "right arrow" }; }
+  / CompositionToken  {return {type:"relation end", value: "composition" }; }
+  / AggregationToken  {return {type:"relation end", value: "aggregation" }; }
+  / InterfaceToken    {return {type:"relation end", value: "interface"   }; }
+
+  
+/* -----      const strings         ----- */
 
 /*-- Words --*/
-
 ReservedWord 
   = RenderCommands
   / UMLObject
@@ -166,8 +375,12 @@ Annotation
   / LegendToken
   / NoteToken
   
-/*-- Tokens --*/
-
+RelationshipBodyHint
+  = "up"i
+  / "down"i
+  / "left"i
+  / "right"i
+  
 /* litterals */
 EmptyToken  = "empty"i    !IdentifierPart
 
@@ -192,10 +405,10 @@ EndToken    = "end"i   !IdentifierPart
 EndHeaderToken = EndToken __ HeaderToken
 
 /* Symbols */
-PrivateToken        = "-" 
-ProtectedToken      = "#" 
-PackagePrivateToken = "~" 
-PublicToken         = "+"
+PrivateToken   = "-" 
+ProtectedToken = "#" 
+PackageToken   = "~" 
+PublicToken    = "+"
 
 StereotypeOpenToken  = "<<"
 StereotypeCloseToken = ">>"
@@ -211,242 +424,48 @@ InterfaceToken    =  "()"
 SolidLineToken  = "-" 
 BrokenLineToken = "." 
 
-/* ----- A.2 Number Conversions ----- */
 
-/* Irrelevant. */
-
-/* ----- A.3 Expressions ----- */
-
-RelationshipBody
-  = a:$(SolidLineToken+) hint:RelationshipBodyHint b:$(SolidLineToken+) { return { type: "solid", len: a.length+b.length, hint:hint } }
-  / a:$(BrokenLineToken+) hint:RelationshipBodyHint b:$(BrokenLineToken+) { return { type: "broken", len: a.length+b.length, hint:hint } }
-  / a:$(SolidLineToken+) { return { type: "solid", len: a.length} }
-  / a:$(BrokenLineToken+) { return { type: "broken", len: a.length} }
-
-RelationshipBodyHint
-  = ("up"/"down"/"left"/"right") 
-
-ScopeModifier
-  = PrivateToken {return {type:"scope modifier", value:"private"}; }
-  / ProtectedToken {return {type:"scope modifier", value:"protected"}; }
-  / PackagePrivateToken {return {type:"scope modifier", value:"package private"}; }
-  / PublicToken {return {type:"scope modifier", value:"public"}; }
-  
-RelationshipLeftEnd
-  = LeftExtendsToken {return {type:"relation end", value: "left extend"}}
-  / LeftArrowToken {return {type:"relation end", value: "left arrow"}}
-  / CompositionToken {return {type:"relation end", value: "composition"}}
-  / AggregationToken {return {type:"relation end", value: "aggregation"}}
-  / InterfaceToken {return {type: "relation end", value: "interface"}}
-
-RelationshipRightEnd
-  = RightExtendsToken {return {type:"relation end", value: "right extend"}}
-  / RightArrowToken {return {type:"relation end", value: "right arrow"}}
-  / CompositionToken {return {type:"relation end", value: "composition"}}
-  / AggregationToken {return {type:"relation end", value: "aggregation"}}
-  / InterfaceToken {return {type: "relation end", value: "interface"}}
-
-RelationExpression 
-  = left:RelationshipLeftEnd? body:RelationshipBody right:RelationshipRightEnd? {
-    return {
-      left: left,
-      right: right,
-      body: body
-    };
-  }
-
+/* -----  common char seq and sets  ----- */
 LabelTerminator
  = "<" 
  / ">"
  / EOS
+
+LineContinuation
+  = Escape $( LF / CR / CRLF )
  
-LabelText
-  = $( !":" _ (StringLiteral / (!LabelTerminator SourceCharacter)+) )
+SourceCharacter
+  = !(LF/CR) .
   
-LabelExpression
-  =  ":" _ text:LabelText _ arrow:LabelTerminator {
-    return { 
-      text: text, 
-      direction: arrow
-    }
-  }
-
-AttributeMembers
-  = item:$(_ Identifier)* _ {return item.trim() }
-
-AttributeBody 
-  = first:AttributeMembers rest:("," AttributeMembers)*  {
-    return buildList(first,rest,1)
-  }
-  
-AttributeExpression
-  = "{" list:AttributeBody "}" { return list; }
-
-ArrayExpression
-  = dtype:Identifier "[" size:$(DIGIT*)? "]"{
-    return {
-      type: "array",
-      basetype: dtype,
-      size: size
-    }
-  }
-  
-DatatypeExpression
-  = ArrayExpression
-  / Identifier
-  
-StereotypeSpotExpression
-  = "(" id:IdentifierPart "," color:(HexIntegerLiteral/id:Identifier) ")" {
-    return {
-      shorthand:id,
-      color: color
-    };
-  }
-  
-StereotypeExpression 
-  = _ spot:(StereotypeSpotExpression _ )? id:$(Identifier+) {
-    return {
-      name:id,
-      spot: extractOptional(spot,1)
-    };
-  }
-  
-Stereotype
-  = StereotypeOpenToken 
-    first:StereotypeExpression  rest:("," StereotypeExpression)*
-    StereotypeCloseToken {
-    return buildList(first,rest,1)
-  }
-    
-MethodExpression
-  = _ scope:( ScopeModifier __ )? 
-    dtype:DatatypeExpression __ id:Identifier _ "()" {
-    return {
-       type: "method",
-       name: id,
-       data_type: dtype,
-       scope: extractOptional(scope,0)
-     }
-   }
-  
-PropertyExpression
-   = _ scope:( ScopeModifier _)?
-     id:Identifier ":" _ dtype:DatatypeExpression
-     attrib:( _ AttributeExpression)?
-     stereo:( _ Stereotype)? _ {
-     return {
-       type: "property",
-       name: id,
-       data_type: dtype,
-	   attributes: extractOptional(attrib,1),
-       scope: extractOptional(scope,0),
-       stereotype: extractOptional(stereo,1)
-     }
-   }
-
-/* ----- A.4 Statements ----- */
-Statment
- = ElementRelationship
- / ConstantDefinition
- / DocFormatHide
-
-ElementRelationship
-  = lhs:Identifier 
-    lhs_card:( __ StringLiteral)?
-     _ rel:RelationExpression _
-    rhs_card:(StringLiteral __ )?
-    rhs:Identifier 
-    lbl:( _ LabelExpression) ? {
-    return {
-        left: {ref: lhs, cardinality: extractOptional(lhs_card,1) },
-        right: {ref: rhs, cardinality: extractOptional(rhs_card,0) },
-        relationship: rel,
-        label: extractOptional(lbl,1)
-    };
-  }
-
-ConstantDefinition
- = "!define" __ key:Identifier __ sub:$(SourceCharacter+) {
-    return {
-      type: "define",
-      search: key,
-      replacement: sub
-    };
-  }
+IdentifierStart
+  = ALPHA
+  / "_"
  
- DocFormatHide 
-  = HideToken _ selector:$( (UMLObject (_ Stereotype )?) / Annotation / EmptyLiteral ) 
-    _ element:$( "stereotype"/"method")? {
-    return {
-      type: "hide",
-      selector: selector,
-      element: element
-    }
-  }
+IdentifierPart
+  = DIGIT 
+  / ALPHA
+  / "_"
+  / "."
 
- 
-/* ----- A.5 Block Elements ----- */
+Escape
+  = "\\"
 
-BlockElement 
-  = ClassDeclaration
-  / EnumDeclaration
-  / HeaderBlock
- 
-HeaderBlock
-  = HeaderToken 
-    LineBreak body:$( !EndHeaderToken SourceCharacter* ) LineBreak
-    EndHeaderToken {
-    return {
-      type: "header block",
-      body: body.trim()
-    };
-  }
-
-ClassElements
-  = member:MethodExpression {return member;}
-  / prop:PropertyExpression {return prop;}
- 
-ClassBody
-  = rest:( ClassElements EOS)* {
-    return extractList(rest, 0)
-  }
+SQUOTE
+  = "'"
+__
+  = WSP+
+_
+  = WSP*
   
-ClassDeclaration
-  = ClassToken __ id:Identifier 
-    stereotype:( _ Stereotype )? 
-    body:( _ "{" LineBreak* ClassBody  LineBreak* "}" )?  {
-    return {
-      umlobjtype: "class",
-      id: id,
-      body:  extractOptional(body,3),
-      stereotype: extractOptional(stereotype, 1)
-    };
-  }
-    
-EnumMembers
-  = _ id:Identifier {
-    return {
-      type:"enum member",
-      name: id
-    };
-  }
+LineBreak
+  = WSP* (CRLF  / LF  / CR ) WSP*
+  
+EOS
+  = $(LineBreak / (WSP* ";" WSP*))+  // new-line or ; terminated statements
+  / $(WSP* & "}" )                    // new of enum/class body
+  / $(WSP* &SQUOTE)                   // begining of comment
+ 
 
-EnumBody 
-  = rest:(EnumMembers EOS )* {
-    return extractList(rest, 0)
-  }  
- 
-EnumDeclaration
-  = EnumToken __ id:Identifier 
-    body:( _ "{" LineBreak* EnumBody LineBreak* "}" )?  {
-    return {
-      umlobjtype: "enum",
-      id: id,
-      body:  optionalList(extractOptional(body, 3)),
-    };
-  }
- 
- 
  /*
  * Augmented BNF for Syntax Specifications: ABNF
  *
