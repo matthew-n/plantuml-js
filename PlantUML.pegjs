@@ -157,10 +157,11 @@ SetRenderElement
 AnnotaionElement 
   =  HeaderBlock
   / TitleBlock
+  / NoteBlock
  
 HeaderBlock
   = HeaderToken 
-    LineBreak body:$( !EndHeaderToken SourceCharacter* ) LineBreak
+    LineBreak body:$( !(LineBreak EndHeaderToken) .)* LineBreak
     EndHeaderToken {
     return {
       type: "header block",
@@ -176,6 +177,26 @@ TitleBlock
     };
   }
 
+NoteBlock
+  = NoteToken __ alias:( "as" __ Identifier)?
+    LineBreak txt:$( !(LineBreak EndToken __ NoteToken) .)* LineBreak
+    EndToken __ NoteToken
+  {
+		return {
+		  type:"note",
+		  text: txt,
+		  alias: extractOptional(alias,2)
+		};
+  }
+	/
+	NoteToken __ alias:( "as" __ Identifier __)? txt:$(SourceCharacter)* 
+  {
+		return {
+		  type:"note",
+		  text: txt,
+		  alias: extractOptional(alias,2)
+		};
+  }
 
 /*** Other ***/
 ConstantDefinition
