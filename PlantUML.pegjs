@@ -155,7 +155,8 @@ SetRenderElement
 
 /*** Annotation Elements ***/
 AnnotaionElement 
-  =  HeaderBlock
+  = HeaderBlock
+  / FooterBlock
   / TitleBlock
   / NoteBlock
   / LegendBlock
@@ -168,6 +169,16 @@ HeaderBlock
       type: "header block",
       body: body.trim()
     };
+  }
+  
+FooterBlock
+  = FooterToken
+    LineBreak body:$( !(LineBreak EndToken __ FooterToken) .)* LineBreak
+	EndToken __ FooterToken {
+    return {
+	    type: "footer",
+		body: body.trim()
+	}
   }
 
 TitleBlock
