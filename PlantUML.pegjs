@@ -182,7 +182,7 @@ FooterBlock
   }
 
 TitleBlock
-  = TitleToken __ title:$(SourceCharacter*) LineBreak {
+  = TitleToken __ title:$(SourceCharacter*) {
     return {
       type: "title",
       text: title.trim()
