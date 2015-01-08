@@ -158,6 +158,7 @@ AnnotaionElement
   =  HeaderBlock
   / TitleBlock
   / NoteBlock
+  / LegendBlock
  
 HeaderBlock
   = HeaderToken 
@@ -196,6 +197,17 @@ NoteBlock
 		  text: txt,
 		  alias: extractOptional(alias,2)
 		};
+  }
+
+LegendBlock
+  = LegendToken meh:(__ Direction)?
+    LineBreak txt:$( !(LineBreak EndToken __ LegendToken) .)* LineBreak
+    EndToken __ LegendToken {
+    return {
+	  type: "legend",
+	  text: txt,
+	  direction: extractOptional(meh,1)
+    };
   }
 
 /*** Other ***/
@@ -240,14 +252,14 @@ RelationExpression
   }
  
 RelationshipBody
-  = lhs:$(SolidLineToken+) hint:RelationshipBodyHint?  rhs:$(SolidLineToken*) { 
+  = lhs:$(SolidLineToken+) hint:Direction?  rhs:$(SolidLineToken*) { 
     return { 
       type: "solid", 
       len: lhs.length + rhs.length, 
       hint: hint||undefined
     } 
   }
-  / lhs:$(BrokenLineToken+) hint:RelationshipBodyHint?  rhs:$(BrokenLineToken*) { 
+  / lhs:$(BrokenLineToken+) hint:Direction?  rhs:$(BrokenLineToken*) { 
     return { 
       type: "solid", 
       len: lhs.length + rhs.length, 
@@ -415,7 +427,7 @@ Annotation
   / LegendToken
   / NoteToken
   
-RelationshipBodyHint
+Direction
   = "up"i
   / "down"i
   / "left"i
