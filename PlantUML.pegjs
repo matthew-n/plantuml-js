@@ -442,7 +442,7 @@ EnumToken    = "enum"i    !IdentifierPart
 PackageToken = "package"i !IdentifierPart
 
 /* Annotations */
-TitleToken  = "title "i   !IdentifierPart
+TitleToken  = "title"i   !IdentifierPart
 HeaderToken = "header"i   !IdentifierPart
 FooterToken = "footer"i   !IdentifierPart
 LegendToken = "legend"i   !IdentifierPart
