@@ -156,6 +156,7 @@ SetRenderElement
 /*** Annotation Elements ***/
 AnnotaionElement 
   =  HeaderBlock
+  / TitleBlock
  
 HeaderBlock
   = HeaderToken 
@@ -167,6 +168,13 @@ HeaderBlock
     };
   }
 
+TitleBlock
+  = TitleToken __ title:$(SourceCharacter*) LineBreak {
+    return {
+      type: "title",
+      text: title.trim()
+    };
+  }
 
 
 /*** Other ***/
