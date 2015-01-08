@@ -6,7 +6,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-	<title>wkx - browser test</title>
+	<title>plantuml-js - browser test</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -43,7 +43,7 @@
 	<div class="one column page ui grid"><div class="column">
 
 		<h1 class="ui header">
-			Using <a href="https://www.npmjs.com/package/wkx"><code>wkx</code></a> in the Browser
+			Using <a href="https://github.com/eldritch-fossicker/plantuml-js"><code>plantuml-js</code></a>
 		</h1>
 
 		<div class="top attached ui segment">
@@ -74,22 +74,22 @@
 			</thead>
 			<tbody>
 				<tr><td><pre><code>enum bar</code></pre></td></tr>
-				<tr><td><pre><code>enum bar { RED; BLUE; GREEN; } </code></pre></td></tr>
+				<tr><td><pre><code>enum bar { RED; BLUE; GREEN; }</code></pre></td></tr>
 				<tr><td><pre><code>class foo</code></pre></td></tr>
 				<tr><td><pre><code>class baz.foo</code></pre></td></tr>
 				<tr><td><pre><code>class foo { id: int}</code></pre></td></tr>
 				<tr><td><pre><code>class foo { void someMethod() }</code></pre></td></tr>
-				<tr><td><pre><code>class foo { id: int &#x3C;&#x3C;PK,SK&#x3E;&#x3E;}</code></pre></td></tr>
+				<tr><td><pre><code>class foo { id: int &lt;&lt;PK,SK&gt;&gt;}</code></pre></td></tr>
 				<tr><td><pre><code>class foo { meh: char[254] }</code></pre></td></tr>
 				<tr><td><pre><code>class foo { meh: int {NULL} }</code></pre></td></tr>
-				<tr><td><pre><code>class foo { meh: int {NULL} &#x3C;&#x3C;FK&#x3E;&#x3E; }</code></pre></td></tr>
+				<tr><td><pre><code>class foo { meh: int {NULL} &lt;&lt;FK&gt;&gt; }</code></pre></td></tr>
 				<tr><td><pre><code>class foo { meh: int {NOT NULL} }</code></pre></td></tr>
-				<tr><td><pre><code>class region_property&#x3C;&#x3C;table&#x3E;&#x3E;{
-  id: int &#x3C;&#x3C;PK,SK&#x3E;&#x3E;
-  region_id: int &#x3C;&#x3C;FK&#x3E;&#x3E;
+				<tr><td><pre><code>class region_property&lt;&lt;table&gt;&gt;{
+  id: int &lt;&lt;PK,SK&gt;&gt;
+  region_id: int &lt;&lt;FK&gt;&gt;
   property_idx: tinyint
-  property_rule_id: int {null} &#x3C;&#x3C;FK&#x3E;&#x3E; 
-  property_class_id: int &#x3C;&#x3C;FK&#x3E;&#x3E;
+  property_rule_id: int {null} &lt;&lt;FK&gt;&gt; 
+  property_class_id: int &lt;&lt;FK&gt;&gt;
   property_name: string
   property_value: string
 }</code></pre></td></tr>
@@ -112,7 +112,7 @@
 	
 	//$("#grammar code").load("https://cdn.rawgit.com/eldritch-fossicker/plantuml-js/use_core_pegjs/PlantUML.pegjs");
    $.ajax({
-	   url : "https://cdn.rawgit.com/eldritch-fossicker/plantuml-js/use_core_pegjs/PlantUML.pegjs",
+	   url : "PlantUML.pegjs",
 	   dataType: "text",
 	   async: false,
 	   success : function (data) {
