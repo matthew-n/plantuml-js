@@ -31,7 +31,8 @@
 
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/1.2.0/semantic.min.css">
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/1.2.0/semantic.min.js"></script>
-	
+
+	<script src="../peg-0.8.0.min.js"></script>
 </head>
 
 <body>
@@ -65,6 +66,30 @@
 			<pre><code class="javascript">var wkx = require('wkx');</code></pre>
 		</div>
 
+		<h2 class="ui header">Code Samples:</h2>
+
+		<table id="examples" class="very compact striped ui table">
+			<thead>
+				<tr><th>Code</th><th></th><th>Result</th></tr>
+			</thead>
+			<tbody>
+				<tr><td><pre><code>[First component]</code></pre></td></tr>
+				<tr><td><pre><code>[Another component] as Comp2</code></pre></td></tr>
+				<tr><td><pre><code>component Comp3</code></pre></td></tr>
+				<tr><td><pre><code>component [Last\ncomponent] as Comp4</code></pre></td></tr>
+				<tr><td><pre><code>() &quot;First Interface&quot;</code></pre></td></tr>
+				<tr><td><pre><code>interface Interf3</code></pre></td></tr>
+				<tr><td><pre><code>interface &quot;Last\ninterface&quot; as Interf4</code></pre></td></tr>
+				<tr><td><pre><code>DataAccess - [First Component]
+[First Component] ..&gt; HTTP : use</code></pre></td></tr>
+			</tbody>
+		</table>
+
+		<h5 class="top attached ui header">Grammar used above:</h5>
+		<pre id="grammar" class="bottom attached ui segment"><textarea rows="50" style="width:100%"></textarea></pre>
+		
+		<h5 class="top attached ui header">Helper functions used above:</h5>
+		<pre id="functions" class="bottom attached ui segment"><code class="javascript"></code></pre>
 
 	</div></div>
 
@@ -74,6 +99,70 @@
 	hljs.configure({ tabReplace: '    ' });
 	hljs.initHighlightingOnLoad();
 	
+	//$("#grammar code").load("https://cdn.rawgit.com/eldritch-fossicker/plantuml-js/use_core_pegjs/PlantUML.pegjs");
+   $.ajax({
+	   url : "../PlantUML.pegjs",
+	   dataType: "text",
+	   async: false,
+	   success : function (data) {
+		   $("#grammar textarea").text(data);
+	   }
+   });
+    
+	var grammar = $("#grammar textarea").text();
+	var parser = PEG.buildParser(grammar);
+
+	$('#examples > tbody > tr')
+	.each(function() {
+		var exampleCode = $('td:first > pre > code', this);
+
+		try {
+			// Build a function to execute the example code.
+			//console.log("exampleFunc):", 'return parser.parse("' + exampleCode.text() +'")');
+			//var exampleFunc = new Function('parser', 'return parser.parse("' + exampleCode.text() +'")');
+			
+			
+			// Run the example code.
+			var result = parser.parse(exampleCode.text())
+
+			var resultNode = $('<td><pre><code class="json"></code></pre></td>')
+
+			resultNode.find('pre > code')
+				.text(JSON.stringify(result, null, '  ')
+					//.replace(/"data": \[[^\]]*\]/, function(match) {
+					.replace(/^(?:\s*\d+,\s*\n\s*){1,16}/gm, function(match) {
+						return match.replace(/\s*\n\s*/g, ' ');
+					}));
+
+			$(this)
+				.addClass('positive')
+				.append('<td><i class="long arrow right icon"></i></td>')
+				.append(resultNode);
+		} catch(exc) {
+			$(this).addClass('error')
+				.append('<td><i class="attention icon"></i></td>')
+
+			var errorNode = $('<td></td>')
+				.appendTo(this);
+
+			var errorLines = (exc.stack || exc.toString()).split(/\r\n?|\n/g);
+
+			$('<strong></strong>')
+				.text(errorLines.shift())
+				.appendTo(errorNode);
+
+			if(errorLines.length > 0)
+			{
+				$('<pre></pre>')
+					.append(
+						$('<code></code>').text(errorLines.join('\n'))
+					)
+					.appendTo(errorNode);
+			}
+		}
+	});
+	
+
 	</script>
 
 </body>

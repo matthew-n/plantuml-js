@@ -32,7 +32,7 @@
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/1.2.0/semantic.min.css">
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/1.2.0/semantic.min.js"></script>
 
-	<script src="peg-0.8.0.min.js"></script>
+	<script src="../peg-0.8.0.min.js"></script>
 </head>
 
 <body>
@@ -73,29 +73,24 @@
 				<tr><th>Code</th><th></th><th>Result</th></tr>
 			</thead>
 			<tbody>
-				<tr><td><pre><code>!define table (T,PowderBlue)Database Table</code></pre></td></tr>
-				<tr><td><pre><code>!define PK &lt;color:orange&gt;  &lt;&amp;key&gt;&lt;/color&gt;</code></pre></td></tr>
-				<tr><td><pre><code>hide class &lt;&lt;Database Table&gt;&gt; stereotype</code></pre></td></tr>
-				<tr><td><pre><code>hide empty method</code></pre></td></tr>
-				<tr><td><pre><code>set namespaceSeparator &quot;&quot;</code></pre></td></tr>
-				<tr><td><pre><code>header
-  Database Documentation
-end header</code></pre></td></tr>
-				<tr><td><pre><code>title Biz.buz Diagram &lt;&lt;Physical Data Model&gt;&gt;</code></pre></td></tr>
-				<tr><td><pre><code>note as n1
- Assume column are {NOT NULL} and 
-  that indexes exist for all &lt;&lt;PK&gt;&gt; 
-  and &lt;&lt;FK&gt;&gt; columns
-end note</code></pre></td></tr>
-				<tr><td><pre><code>legend right
-  Primary Key - PK
-  Foreign Key - FK
-  Natural Key - NK
-end legend</code></pre></td></tr>
-				<tr><td><pre><code>footer
-Copyright 2014 Example, Inc.
-end footer</code></pre></td></tr>
-				</tbody>
+				<tr><td><pre><code>(*) --&gt; &quot;First Activity&quot;; &quot;First Activity&quot; --&gt; (*)</code></pre></td></tr>
+				<tr><td><pre><code>(*) --&gt; &quot;First Activity&quot;
+--&gt;[You can put also labels] &quot;Second Activity&quot;
+--&gt; (*)</code></pre></td></tr>
+				<tr><td><pre><code>(*) -up-&gt; &quot;First Activity&quot;
+-right -&gt; &quot;Second Activity&quot;
+--&gt; &quot;Third Activity&quot;
+-left -&gt; (*)</code></pre></td></tr>
+				<tr><td><pre><code>(*) --&gt; &quot;Initialisation&quot;
+if &quot;Some Test&quot; then
+--&gt;[true] &quot;Some Activity&quot;
+--&gt; &quot;Another activity&quot;
+-right -&gt; (*)
+else
+-&gt;[false] &quot;Something else&quot;
+--&gt;[Ending process] (*)
+endif</code></pre></td></tr>
+			</tbody>
 		</table>
 
 		<h5 class="top attached ui header">Grammar used above:</h5>
@@ -114,7 +109,7 @@ end footer</code></pre></td></tr>
 	
 	//$("#grammar code").load("https://cdn.rawgit.com/eldritch-fossicker/plantuml-js/use_core_pegjs/PlantUML.pegjs");
    $.ajax({
-	   url : "PlantUML.pegjs",
+	   url : "../PlantUML.pegjs",
 	   dataType: "text",
 	   async: false,
 	   success : function (data) {
