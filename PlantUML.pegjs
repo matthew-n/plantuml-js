@@ -162,22 +162,24 @@ AnnotaionElement
   / LegendBlock
  
 HeaderBlock
-  = HeaderToken 
-    LineBreak body:$( !(LineBreak EndHeaderToken) .)* LineBreak
-    EndHeaderToken {
+  = align:HAlignment? HeaderToken 
+    LineBreak body:$( !(LineBreak EndToken __ HeaderToken) .)* LineBreak
+    EndToken __ HeaderToken {
     return {
       type: "header block",
-      body: body.trim()
+      body: body.trim(),
+	  alignment: align
     };
   }
   
 FooterBlock
-  = FooterToken
+  = align:HAlignment? FooterToken
     LineBreak body:$( !(LineBreak EndToken __ FooterToken) .)* LineBreak
 	EndToken __ FooterToken {
     return {
 	    type: "footer",
-		body: body.trim()
+		body: body.trim(),
+		alignment: align
 	}
   }
 
@@ -190,28 +192,45 @@ TitleBlock
   }
 
 NoteBlock
-  = NoteToken __ alias:( "as" __ Identifier)?
-    LineBreak txt:$( !(LineBreak EndToken __ NoteToken) .)* LineBreak
-    EndToken __ NoteToken
-  {
-		return {
-		  type:"note",
-		  text: txt,
-		  alias: extractOptional(alias,2)
-		};
-  }
-	/
-	NoteToken __ alias:( "as" __ Identifier __)? txt:$(SourceCharacter)* 
-  {
-		return {
-		  type:"note",
-		  text: txt,
-		  alias: extractOptional(alias,2)
-		};
-  }
+  = NoteToken _ body:StringLiteral alias:( _ AsToken __ Identifier)?
+    {
+      return {
+        type: "note", 
+        body: body, 
+        alias: extractOptional(alias,2)
+      }; 
+    }
+  / NoteToken alias:( __ AsToken __ Identifier)?
+    LineBreak body:$( !(LineBreak EndToken __ NoteToken) .)* LineBreak
+	EndToken __ NoteToken
+    {
+      return {
+        type: "note", 
+        body: body.trim(), 
+        alias: extractOptional(alias,2)
+      }; 
+    }
+  / NoteToken __ align:(NoteAlign __)? id:Identifier _ ":" _ body:$(SourceCharacter*)
+    {
+      return {
+        type: "note", 
+        body: body.trim(), 
+        alignment: extractOptional(align,0)
+      }; 
+    }
+  / NoteToken __ align:(NoteAlign __)? id:Identifier 
+    LineBreak body:$( !(LineBreak EndToken __ NoteToken) .)* LineBreak
+	EndToken __ NoteToken
+    {
+      return {
+        type: "note", 
+        body: body.trim(), 
+        alignment: extractOptional(align,0)
+      }; 
+    }
 
 LegendBlock
-  = LegendToken meh:(__ Direction)?
+  = LegendToken meh:(__ RelationHint)?
     LineBreak txt:$( !(LineBreak EndToken __ LegendToken) .)* LineBreak
     EndToken __ LegendToken {
     return {
@@ -263,14 +282,14 @@ RelationExpression
   }
  
 RelationshipBody
-  = lhs:$(SolidLineToken+) hint:Direction?  rhs:$(SolidLineToken*) { 
+  = lhs:$(SolidLineToken+) hint:RelationHint?  rhs:$(SolidLineToken*) { 
     return { 
       type: "solid", 
       len: lhs.length + rhs.length, 
       hint: hint||undefined
     } 
   }
-  / lhs:$(BrokenLineToken+) hint:Direction?  rhs:$(BrokenLineToken*) { 
+  / lhs:$(BrokenLineToken+) hint:RelationHint?  rhs:$(BrokenLineToken*) { 
     return { 
       type: "solid", 
       len: lhs.length + rhs.length, 
@@ -437,12 +456,23 @@ Annotation
   / FooterToken
   / LegendToken
   / NoteToken
-  
-Direction
-  = "up"i
-  / "down"i
-  / "left"i
-  / "right"i
+
+/* Alignment */
+RelationHint = UpToken / DownToken / LeftToken / RightToken
+
+HAlignment = CenterToken / LeftToken / RightToken
+
+NoteAlign = $(((TopToken / BottomToken / LeftToken / RightToken) __ OfToken) / OverToken)
+
+UpToken     = "up"i       !IdentifierPart
+DownToken   = "down"i     !IdentifierPart
+LeftToken   = "left"i     !IdentifierPart
+RightToken  = "right"i    !IdentifierPart
+TopToken    = "top"i      !IdentifierPart
+BottomToken = "bottom"i   !IdentifierPart
+OverToken   = "over"i     !IdentifierPart
+CenterToken = "center"i   !IdentifierPart
+OfToken     = "of"i       !IdentifierPart
   
 /* litterals */
 EmptyToken  = "empty"i    !IdentifierPart
@@ -453,20 +483,21 @@ EnumToken    = "enum"i    !IdentifierPart
 PackageToken = "package"i !IdentifierPart
 
 /* Annotations */
-TitleToken  = "title"i   !IdentifierPart
+TitleToken  = "title"i    !IdentifierPart
 HeaderToken = "header"i   !IdentifierPart
 FooterToken = "footer"i   !IdentifierPart
 LegendToken = "legend"i   !IdentifierPart
 NoteToken   = "note"i     !IdentifierPart
 
 /* Render Commands */
-HideToken   = "hide"i  !IdentifierPart
-SetToken    = "set"i   !IdentifierPart
-NSSepToken  = "namespaceSeparator"i !IdentifierPart
+HideToken   = "hide"i     !IdentifierPart
+SetToken    = "set"i      !IdentifierPart
+NSSepToken
+  = "namespaceSeparator"i !IdentifierPart
 
 /* Reserved Words */
-EndToken    = "end"i   !IdentifierPart
-EndHeaderToken = EndToken __ HeaderToken
+EndToken    = "end"i      !IdentifierPart
+AsToken     = "as"i       !IdentifierPart
 
 /* Symbols */
 PrivateToken   = "-" 
