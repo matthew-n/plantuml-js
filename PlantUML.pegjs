@@ -100,10 +100,11 @@ ElementRelationship
     rhs:Identifier 
     lbl:( _ LabelExpression) ? {
     return {
-        left: {ref: lhs, cardinality: extractOptional(lhs_card,1) },
-        right: {ref: rhs, cardinality: extractOptional(rhs_card,0) },
-        relationship: rel,
-        label: extractOptional(lbl,1)
+      type: "relation",
+      left_node: {ref: lhs, cardinality: extractOptional(lhs_card,1) },
+      right_node: {ref: rhs, cardinality: extractOptional(rhs_card,0) },
+      edge: rel,
+      label: extractOptional(lbl,1)
     };
   }
 
@@ -112,7 +113,7 @@ ClassDeclaration
     stereotype:( _ StereotypeExpression )? 
     body:( _ "{" LineBreak* ClassBody  LineBreak* "}" )?  {
     return {
-      umlobjtype: "class",
+      type: "class",
       id: id,
       body:  extractOptional(body,3),
       stereotype: extractOptional(stereotype, 1)
@@ -123,7 +124,7 @@ EnumDeclaration
   = EnumToken __ id:Identifier 
     body:( _ "{" LineBreak* EnumBody LineBreak* "}" )?  {
     return {
-      umlobjtype: "enum",
+      type: "enum",
       id: id,
       body:  optionalList(extractOptional(body, 3)),
     };
@@ -147,7 +148,7 @@ FormattingElement
 SetRenderElement
   = SetToken __ cmd:$(NSSepToken) __ val:StringLiteral {
     return {
-      type:"render command",
+      type:"set",
       command: cmd,
       value: val
     };
@@ -166,7 +167,7 @@ HeaderBlock
     LineBreak body:$( !(LineBreak EndHeaderToken) .)* LineBreak
     EndHeaderToken {
     return {
-      type: "header block",
+      type: "header",
       body: body.trim(),
 	  alignment: align
     };
@@ -275,8 +276,8 @@ LabelExpression
 RelationExpression 
   = left:RelationshipLeftEnd? body:RelationshipBody right:RelationshipRightEnd? {
     return {
-      left: left,
-      right: right,
+      left_end: left,
+      right_end: right,
       body: body
     };
   }
@@ -284,14 +285,14 @@ RelationExpression
 RelationshipBody
   = lhs:$(SolidLineToken+) hint:RelationHint?  rhs:$(SolidLineToken*) { 
     return { 
-      type: "solid", 
+      style: "solid", 
       len: lhs.length + rhs.length, 
       hint: hint||undefined
     } 
   }
   / lhs:$(BrokenLineToken+) hint:RelationHint?  rhs:$(BrokenLineToken*) { 
     return { 
-      type: "solid", 
+      style: "broken", 
       len: lhs.length + rhs.length, 
       hint: hint||undefined
     } 
