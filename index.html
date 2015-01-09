@@ -22,6 +22,7 @@
 	<![endif]-->
 
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.address/1.6/jquery.address.min.js"></script>
 
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/github.min.css">
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js"></script>
@@ -32,6 +33,8 @@
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/1.2.0/semantic.min.css">
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/1.2.0/semantic.min.js"></script>
 	
+	<script src="peg-0.8.0.min.js"></script>
+
 </head>
 
 <body>
@@ -64,12 +67,102 @@
 				look the same:</p>
 			<pre><code class="javascript">var wkx = require('wkx');</code></pre>
 		</div>
+		
+		<div class="dynamic example">
+			<h4 class="header">Code Samples:</h4>
+			<div class="ui top attached tabular menu">
+				<a class="item" data-tab="activity.html">Activity</a>				
+				<a class="item" data-tab="class.html">Class</a>				
+				<a class="item" data-tab="use_case.html">Use Case</a>
+				<a class="item" data-tab="component.html">Component</a>
+				<a class="item" data-tab="annotation.html">Annotation</a>
+			</div>
+		
+			<div class="ui bottom attached tab segment" data-tab="activity.html"></div>				
+			<div class="ui bottom attached tab segment" data-tab="class.html"></div>				
+			<div class="ui bottom attached tab segment" data-tab="use_case.html"></div>
+			<div class="ui bottom attached tab segment" data-tab="component.html"></div>
+			<div class="ui bottom attached tab segment" data-tab="annotation.html"></div>
+		</div>
+		
 
-
+		<h5 class="top attached ui header">Grammar used above:</h5>
+		<pre id="grammar" class="bottom attached ui segment"><textarea rows="50" style="width:100%"></textarea></pre>
+		
 	</div></div>
 
-	<script>
+	<script>	
+	$.ajax({
+	   url : "../PlantUML.pegjs",
+	   dataType: "text",
+	   async: false,
+	   success : function (data) {
+		   $("#grammar textarea").text(data);
+	   }
+	});
+	
+	var grammar = $("#grammar textarea").text();
+	var parser = PEG.buildParser(grammar);
+	
+	$('.tabular.menu .item')
+	  .tab({
+		context : '.dynamic.example',
+		auto    : true,
+		path    : '/test',
+		history: true
+		//FIXME: add function to highlight and eval
+		,	onTabLoad: function()
+		{
+			$(".examples > tbody > tr", this)
+			.each(function() {
+				var exampleCode = $('td:first > pre > code', this)
+					.each(function(){hljs.highlightBlock(this);});
 
+				try {
+					// Run the example code.
+					var result = parser.parse(exampleCode.text())
+
+					var resultNode = $('<td><pre><code class="json"></code></pre></td>')
+
+					resultNode.find('pre > code')
+						.text(JSON.stringify(result, null, '  ')
+							//.replace(/"data": \[[^\]]*\]/, function(match) {
+							.replace(/^(?:\s*\d+,\s*\n\s*){1,16}/gm, function(match) {
+								return match.replace(/\s*\n\s*/g, ' ');
+							}))
+						.each(function(){hljs.highlightBlock(this);});
+
+					$(this)
+						.addClass('positive')
+						.append('<td><i class="long arrow right icon"></i></td>')
+						.append(resultNode);
+				} catch(exc) {
+					$(this).addClass('error')
+						.append('<td><i class="attention icon"></i></td>')
+
+					var errorNode = $('<td></td>')
+						.appendTo(this);
+
+					var errorLines = (exc.stack || exc.toString()).split(/\r\n?|\n/g);
+
+					$('<strong></strong>')
+						.text(errorLines.shift())
+						.appendTo(errorNode);
+
+					if(errorLines.length > 0)
+					{
+						$('<pre></pre>')
+							.append(
+								$('<code></code>').text(errorLines.join('\n'))
+							)
+							.appendTo(errorNode);
+					}
+				}
+			});
+		}
+		
+	  });
+	   
 	// Highlight all existing code blocks.
 	hljs.configure({ tabReplace: '    ' });
 	hljs.initHighlightingOnLoad();
