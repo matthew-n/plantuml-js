@@ -74,7 +74,7 @@ start
  = instructions
  
 instructions
-  = first:instruction? rest:(EOS instruction)* EOS?  {
+  = first:instruction? rest:(EOS instruction)* EOS? {
     return ( first ? [first] : []). concat(extractList(rest,1));
   }
   
@@ -163,8 +163,8 @@ AnnotaionElement
  
 HeaderBlock
   = align:HAlignment? HeaderToken 
-    LineBreak body:$( !(LineBreak EndToken __ HeaderToken) .)* LineBreak
-    EndToken __ HeaderToken {
+    LineBreak body:$( !(LineBreak EndHeaderToken) .)* LineBreak
+    EndHeaderToken {
     return {
       type: "header block",
       body: body.trim(),
@@ -174,8 +174,8 @@ HeaderBlock
   
 FooterBlock
   = align:HAlignment? FooterToken
-    LineBreak body:$( !(LineBreak EndToken __ FooterToken) .)* LineBreak
-	EndToken __ FooterToken {
+    LineBreak body:$( !(LineBreak EndFooterToken) .)* LineBreak
+	EndFooterToken {
     return {
 	    type: "footer",
 		body: body.trim(),
@@ -498,6 +498,15 @@ NSSepToken
 /* Reserved Words */
 EndToken    = "end"i      !IdentifierPart
 AsToken     = "as"i       !IdentifierPart
+
+/* comaptiblity */
+EndHeaderToken
+  = EndToken __ HeaderToken
+  / "endheader"i
+  
+EndFooterToken
+  = EndToken __ FooterToken
+  / "endfooter"i
 
 /* Symbols */
 PrivateToken   = "-" 
