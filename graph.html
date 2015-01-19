@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<title>plantuml-js - browser test</title>
+	<meta name="description" content="">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<style>
+		#examples td > pre:only-child { margin: 0; }
+		#examples code.hljs, #functions code.hljs { background: transparent; padding: 0; }
+		pre:last-child { margin-bottom: 0; }
+
+		svg {
+		  border: 1px solid #999;
+		  overflow: hidden;
+		}
+
+		.node {
+		  white-space: nowrap;
+		}
+
+		.node rect,
+		.node circle,
+		.node ellipse {
+		  stroke: #333;
+		  fill: #fff;
+		  stroke-width: 1.5px;
+		}
+
+		.cluster rect {
+		  stroke: #333;
+		  fill: #000;
+		  fill-opacity: 0.1;
+		  stroke-width: 1.5px;
+		}
+
+		.edgePath path.path {
+		  stroke: #333;
+		  stroke-width: 1.5px;
+		  fill: none;
+		}
+	</style>
+
+	<!--[if lt IE 9]>
+		<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+		<script>window.html5 || document.write('<script src="js/vendor/html5shiv.js"><\/script>')</script>
+	<![endif]-->
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.address/1.6/jquery.address.min.js"></script>
+
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/github.min.css">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/languages/bash.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/languages/javascript.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/languages/xml.min.js"></script>
+
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/1.2.0/semantic.min.css">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/1.2.0/semantic.min.js"></script>
+	
+	<script src="lib/lodash.js"></script>
+	<script src="lib/graphlib.js"></script>
+	
+	<script src="http://d3js.org/d3.v3.js"></script>
+	<script src="lib/dagre-d3.js"></script>
+
+</head>
+<body>
+	<!--[if lt IE 7]>
+		<p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+	<![endif]-->
+	<div class="one column page ui grid"><div class="column">
+
+		<h1 class="ui header">
+			Using <a href="https://github.com/eldritch-fossicker/plantuml-js"><code>plantuml-js</code></a>
+		</h1>
+		
+		<h5 class="top attached ui header">Graph Visualization:</h5>
+		<svg width="100%" height=600>
+		  <g/>
+		</svg>
+
+		<h5 class="top attached ui header">Sample parse-tree used above:</h5>
+		<pre id="sample" class="bottom attached ui segment"><textarea rows="50" style="width:100%"></textarea></pre>
+		
+	<script>
+	
+	var Graph = graphlib.Graph;
+	var render = dagreD3.render();
+
+	// Set up zoom support
+	var svg = d3.select("svg"),
+		inner = d3.select("svg g"),
+		zoom = d3.behavior.zoom().on("zoom", function() {
+		  inner.attr("transform", "translate(" + d3.event.translate + ")" +
+									  "scale(" + d3.event.scale + ")");
+		});
+	svg.call(zoom);
+
+	var sampleTree;
+	
+	// on page load event.	
+	$(function()
+	{
+		$.ajax({
+			url : "test_data.json",
+			dataType: "text",
+			success : function (data) {
+				$("#sample textarea").text(data);
+				sampleTree = JSON.parse(data);
+				g = buildGraph(sampleTree);
+				console.log(JSON.stringify(graphlib.json.write(g),null,2));
+				tryGraph(g);
+			}
+		});
+		
+	});
+	
+	function buildGraph(parseTree){
+		var 
+			isDirected = false,
+			isMultiGraph = false,
+			defaultStack = [{node: {}, edge: {} }],
+			g = new Graph({directed: isDirected, multigraph: isMultiGraph, compound: true});
+		g.setGraph({});
+		_.each(parseTree, function (stmt) { handelStmt(g, stmt, defaultStack); });
+		return g;
+	}
+	
+	function handelStmt(g, stmt, defaultStack, sg){
+		switch(stmt.type){
+			case "class": handelClass(g, stmt, defaultStack, sg); break;
+			case "relation": handelRelation(g, stmt, defaultStack, sg); break;
+			case "define": handelDefine(g, stmt, defaultStack, sg); break;
+			default:
+				console.log(stmt.type);
+		}
+	}
+	
+	function handelDefine(g, stmt, defaultStack, sg){
+		//FIXME: add code to do replacements or CSS style
+	}
+	
+	function handelClass(g, stmt, defaultStack, sg){
+		var 
+			v = stmt.id,
+			attrs = {
+				"class": stmt.stereotype.map(function(x){return x.name}).join(" "), 
+				"members": stmt.body.map(function(x){x.name} )
+			};
+		maybeCreateNode(g, v, defaultStack, sg);
+		_.merge(g.node(v), attrs);
+	}
+	
+	function handelRelation(g, stmt, defaultStack, sg){
+		var 
+			attrs = stmt.edge;
+			left = stmt.left_node.ref, 
+			right = stmt.right_node.ref;
+		if (!g.hasEdge(left, right, attrs)){
+			g.setEdge(left, right, attrs);
+		}
+	}
+	
+	function handelArrow(g, stmt, defaultStack, sg){
+		console.log("not implimented: handel Arrow")
+	}
+	
+	function maybeCreateNode(g, v, defaultStack, sg) {
+	  if (!g.hasNode(v)) {
+		g.setNode(v, _.clone(_.last(defaultStack).node));
+		g.setParent(v, sg);
+	  }
+	}
+	
+	function tryGraph(g)
+	{
+	   // Set margins, if not present
+		if (!g.graph().hasOwnProperty("marginx") &&
+			!g.graph().hasOwnProperty("marginy")) {
+		  g.graph().marginx = 20;
+		  g.graph().marginy = 20;
+		}
+		
+		g.graph().transition = function(selection) {
+		  return selection.transition().duration(500);
+		};
+
+		// Render the graph into svg g
+		d3.select("svg g").call(render, g);
+	}
+	
+	// Highlight all existing code blocks.
+	hljs.configure({ tabReplace: '    ' });
+	hljs.initHighlightingOnLoad();
+	</script>
+</body>
+</html>

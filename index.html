@@ -92,26 +92,30 @@
 	</div></div>
 
 	<script>	
-	$.ajax({
-	   url : "../PlantUML.pegjs",
-	   dataType: "text",
-	   async: false,
-	   success : function (data) {
-		   $("#grammar textarea").text(data);
-	   }
+	var parser;
+
+	// on page load event.	
+	$(function()
+	{
+		$.ajax({
+			url : "PlantUML.pegjs",
+			dataType: "text",
+			success : function (data) {
+				$("#grammar textarea").text(data);
+				parser = PEG.buildParser(data);
+			}
+		});
+		
 	});
 	
-	var grammar = $("#grammar textarea").text();
-	var parser = PEG.buildParser(grammar);
-	
+
 	$('.tabular.menu .item')
 	  .tab({
 		context : '.dynamic.example',
 		auto    : true,
 		path    : '/test',
-		history: true
-		//FIXME: add function to highlight and eval
-		,	onTabLoad: function()
+		history: true,
+		onTabLoad: function()
 		{
 			$(".examples > tbody > tr", this)
 			.each(function() {
