@@ -6,8 +6,7 @@ describe('PlantUML Relationships', function() {
 
 	var	parser;
 	before(function(){
-		var grammar;
-		grammar = fs.readFileSync('./PlantUML.pegjs', 'utf8');
+		var grammar = fs.readFileSync('./PlantUML.pegjs', 'utf8');
 		parser = PEG.buildParser(grammar);
 	});
 
@@ -54,7 +53,7 @@ describe('PlantUML Relationships', function() {
 			var parsed = parser.parse('A -* B');
 		});
 		
-		it('Agregation', function(){
+		it('Aggregation', function(){
 			var parsed = parser.parse('A -o B');
 		});
 		
@@ -67,7 +66,7 @@ describe('PlantUML Relationships', function() {
 		});
 	});
 	
-	describe('Carnality values', function(){	
+	describe('Cardinality values', function(){	
 		it('single number left', function(){
 			var parsed = parser.parse('A "1" -- B');
 		});
@@ -110,6 +109,10 @@ describe('PlantUML Relationships', function() {
 		
 		it('point left', function(){
 			var parsed = parser.parse('A - B: has some relation < \n');
+		});
+		
+		it('label requried before', function(){
+			expect(function(){parser.parse('A - B: < \n')}).to.throw(parser.SyntaxError);
 		});
 	});
 	
