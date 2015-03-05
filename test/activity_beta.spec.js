@@ -106,26 +106,122 @@ describe.skip('PlantUML Activity Diagram - beta syntax', function() {
 				'while (check filesize ?) is (not empty) \n'+
 				':read file; \n'+
 				'endwhile (empty) \n'+
-				':close file;'
+				':close file;';
 		});
 	});
 	
 	describe('Parallel Processing', function(){
+		it('basic', function(){
+			var text = 
+				'start \n'+
+				'if (multiprocessor?) then (yes)\n'+
+				'fork\n'+
+				':Treatment 1;\n'+
+				'fork again\n'+
+				':Treatment 2;\n'+
+				'end fork\n'+
+				'else (monoproc)\n'+
+				':Treatment 1;\n'+
+				':Treatment 2;\n'+
+				'endif\n';
+		});
+		it('detach', function(){
+			var text = 
+				'start \n'+
+				'if (multiprocessor?) then (yes)\n'+
+				'fork\n'+
+				':Treatment 1;\n'+
+				'fork again\n'+
+				':Treatment 2;\n'+
+				'fork again\n'+
+				':foo3;\n'+
+				'detach\n'+
+				'end fork\n'+
+				'else (monoproc)\n'+
+				':Treatment 1;\n'+
+				':Treatment 2;\n'+
+				'endif\n';
+		});
+		it('long fork', function(){
+			var text = 
+				'start \n'+
+				'if (multiprocessor?) then (yes)\n'+
+				'fork\n'+
+				':Treatment 1;\n'+
+				'fork again\n'+
+				':Treatment 2;\n'+
+				':foo3;\n'+
+				'detach\n'+
+				'end fork\n'+
+				'else (monoproc)\n'+
+				':Treatment 1;\n'+
+				':Treatment 2;\n'+
+				'endif\n';
+		});
+
+	});
+	describe('Color decorations', function(){
+		it('for Process', function(){
+			var text = 
+				'start \n'+
+				':start progress; \n'+
+				'#HotPink:reding configuration files \n'+
+				'These files should edited at this point! \n'+
+				'#AAAAAA:ending of the process;';
+		});
+		it('for Arrows', function(){
+			var text = 
+				':foo1; \n'+
+				'-[#blue]-> \n'+
+				':foo2; \n';
+		});
+	});
+	describe('Grouping',function(){
+		it('basic test', function(){
 		var text = 
 			'start \n'+
-			'if (multiprocessor?) then (yes)\n'+
-			'fork\n'+
-			':Treatment 1;\n'+
-			'fork again\n'+
-			':Treatment 2;\n'+
-			'end fork\n'+
-			'else (monoproc)\n'+
-			':Treatment 1;\n'+
-			':Treatment 2;\n'+
-			'endif\n'
+			'partition Initializetion {\n'+
+			':read config file;\n'+
+			':init internal variables;\n'+
+			'} \n'+
+			'partition Running {\n'+
+			':wait for user interaction;\n'+
+			':print information;\n'+
+			'} \n'+
+			'stop';
+		});
 	});
-	
-	describe('Colors', function(){
+	describe('swimlanes',function(){
+		it('basic definition', function(){
+			var text = '|lane1|\nstart\n:fooA;\n|lane2|\n:fooB;\n|lane1|\nstop';	
+		});
+		it('allow color', function(){
+			var text = '|lane1|\nstart\n:fooA;\n|#AntiqueWhite|lane2|\n:fooB;\n|lane1|\nstop';
+		});
 	});
-	
+
+	describe('Specification and Description Language (SDL)', function(){
+		it('state', function(){
+			var text = ':foo;';
+		});
+		it('Recive', function(){
+			var text = ':input<';
+		});
+		it('Send', function(){
+			var text = ':print>';
+		});
+		it('function call', function(){
+			var text = ':func(x)|';
+		});
+		it('decision', function(){
+			var text = ':i > 5}';
+		});
+		it('save state', function(){
+			var test = ':foo/';
+		});
+		it('execute', function(){
+			var text = 'i := i+1]';
+		});
+	});
 });
+
