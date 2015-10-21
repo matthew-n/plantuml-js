@@ -2,7 +2,7 @@ var expect =  require('chai').expect;
 var fs = require('fs');
 var PEG = require('pegjs');
 
-describe('PlantUML Annotation Diagram', function() {
+describe('PlantUML Preprocessor Commands', function() {
 
 	var	parser;
 	
@@ -10,6 +10,20 @@ describe('PlantUML Annotation Diagram', function() {
 		var grammar;
 		grammar = fs.readFileSync('./PlantUML.pegjs', 'utf8');
 		parser = PEG.buildParser(grammar);
+	});
+	
+	describe.skip('Include', function(){
+		it('local file', function(){
+			var parsed = parser.parse('!include foo.txt');
+		});
+		
+		it('local file subsection', function(){
+			var parsed = parser.parse('!include foo.txt!1');
+		});
+		
+		it('url file', function(){
+			var parsed = parser.parse('!includeurl http://localhost/foo.txt');
+		});
 	});
 	
 	describe('constant definitions', function(){
@@ -28,7 +42,7 @@ describe('PlantUML Annotation Diagram', function() {
 		
 	});	// end constant definitions 
 	
-	describe('Formatting Elements', function(){
+	describe.skip('Formatting Elements', function(){
 		describe('show/hide document elements', function(){
 		
 			it('for empty fields', function(){
@@ -84,7 +98,22 @@ describe('PlantUML Annotation Diagram', function() {
 		});
 		
 		describe.skip('set redering ', function(){
+			it('single skinparam', function(){
+				var parsed = parser.parse('skinparam classFontColor red');
+			});
+			
+			it('multiple skinparam', function(){
+				var parsed = parser.parse('skinparam class{\nFontColor red\nFontSize 10\nFontName Anpex\n}');
+			});
+			
+			it('invalid skinparam', function(){
+				expect(parser.parse('skinparam stateFontColor red')).to.throw(parser.SyntaxError);
+			});
+			
+			it('invalid skinparam group', function(){
+				expect(parser.parse('skinparam state{\nFontColor red}')).to.throw(parser.SyntaxError);
+			});
 		});
+		
 	});
-	
 });// end annotation diagram
