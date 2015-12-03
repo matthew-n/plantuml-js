@@ -403,8 +403,9 @@ StringLiteral "string"
     }
  
 DoubleStringCharacter
-  = !(DQUOTE / Escape) SourceCharacter
-  / LineContinuation
+  = !(DQUOTE)(Escape DQUOTE/ SourceCharacter)
+  / NL
+  / WSP
 
 HexIntegerLiteral
   = "#" digits:$HEXDIG+ {
