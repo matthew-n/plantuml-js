@@ -104,15 +104,6 @@ ClassDeclaration
     };
   }
   
-EnumDeclaration
-  = EnumToken WSP+ id:Identifier 
-    body:( WSP* "{" NL* EnumBody NL* "}" )?  {
-    return {
-      type: "enum",
-      id: id,
-      body:  optionalList(extractOptional(body, 3)),
-    };
-  }
   
 /*** Formatting Elements ***/
 FormattingElement
@@ -242,6 +233,19 @@ Comment
 
 
 /* -----       Expressions          ----- */
+DatatypeExpression
+  = ArrayExpression
+  / Identifier
+  
+ArrayExpression
+  = dtype:Identifier "[" size:$(DIGIT*)? "]"{
+    return {
+      type: "array",
+      basetype: dtype,
+      size: size
+    }
+  }
+
 Identifier
   = $(!ReservedWord IdentifierStart (IdentifierPart)*)
   
@@ -345,31 +349,17 @@ LabelChar
   = $(ALPHA/SP)+
 
 /*** Enum Expressions ***/
-EnumMembers
-  = WSP* id:Identifier {
-    return {
-      type:"enum member",
-      name: id
-    };
-  }
-
-EnumBody 
-  = rest:(EnumMembers EOS )* {
-    return extractList(rest, 0)
-  }  
-
-DatatypeExpression
-  = ArrayExpression
-  / Identifier
+EnumDeclaration
+  = EnumToken WSP+ id:Identifier body:EnumBody? EOS 
+  		{ return { type: "enum", id: id, body:  body}; }
   
-ArrayExpression
-  = dtype:Identifier "[" size:$(DIGIT*)? "]"{
-    return {
-      type: "array",
-      basetype: dtype,
-      size: size
-    }
-  }
+EnumBody 
+  = WSP* "{" (NL/WSP)*  member:EnumMembers+ (NL/WSP)*  "}"  
+  		{return member;}
+
+EnumMembers
+  = (NL/WSP)* id:Identifier EOS? 
+  		{ return { type:"enum member", name: id }; }
 
 /*** Stereotype Expressions ***/
 StereotypeExpression 
