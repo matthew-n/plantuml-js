@@ -75,36 +75,21 @@ start
  
 instructions
  = WSP* foo:instruction EOS? {return foo}
-  
+ 
 instruction
   = UMLStatment
   / AnnotaionElement
   / FormattingElement
   / ConstantDefinition
   / Comment
-
+  
 /* -----         Statements         ----- */
 
 UMLStatment
   = ElementRelationship
   / ClassDeclaration
   / EnumDeclaration
-  
-ElementRelationship
-  = lhs:Identifier 
-    lhs_card:( WSP+ StringLiteral)?
-     WSP* rel:RelationExpression WSP*
-    rhs_card:(StringLiteral WSP+ )?
-    rhs:Identifier 
-    lbl:( WSP* LabelExpression) ? {
-    return {
-      type: "relation",
-      left_node: {ref: lhs, cardinality: extractOptional(lhs_card,1) },
-      right_node: {ref: rhs, cardinality: extractOptional(rhs_card,0) },
-      edge: rel,
-      label: extractOptional(lbl,1)
-    };
-  }
+
 
 ClassDeclaration
   = ClassToken WSP+ id:Identifier 
@@ -260,43 +245,7 @@ Comment
 Identifier
   = $(!ReservedWord IdentifierStart (IdentifierPart)*)
   
-LabelText
-  = $( !":" WSP* (StringLiteral / (!LabelTerminator SourceCharacter)+) )
-
-LabelExpression
-  =  ":" WSP* text:LabelText WSP* arrow:LabelTerminator {
-    return { 
-      text: text, 
-      direction: arrow
-    }
-  }
-  
- /** Relation Expression**/ 
-RelationExpression 
-  = left:RelationshipLeftEnd? body:RelationshipBody right:RelationshipRightEnd? {
-    return {
-      left_end: left,
-      right_end: right,
-      body: body
-    };
-  }
  
-RelationshipBody
-  = lhs:$(SolidLineToken+) hint:RelationHint?  rhs:$(SolidLineToken*) { 
-    return { 
-      style: "solid", 
-      len: lhs.length + rhs.length, 
-      hint: hint||undefined
-    } 
-  }
-  / lhs:$(BrokenLineToken+) hint:RelationHint?  rhs:$(BrokenLineToken*) { 
-    return { 
-      style: "broken", 
-      len: lhs.length + rhs.length, 
-      hint: hint||undefined
-    } 
-  }
-
 /*** class expressions **/
 
 ClassBody
@@ -305,7 +254,7 @@ ClassBody
    "}" 
    EOS 
    {return member}
-  
+
 MethodExpression
   = WSP* scope:( ScopeModifier WSP+ )? 
     dtype:DatatypeExpression WSP+ id:Identifier WSP* "()" (WSP/NL)*{
@@ -342,7 +291,58 @@ AttributeBody
   
 AttributeMembers
   = item:$(WSP* Identifier)* WSP* {return item.trim() }
-    
+
+
+ /** Relation Expression**/ 
+ElementRelationship
+  = lhs:RelationMember WSP*  rel:RelationExpression WSP* 
+    rhs:RelationMember WSP* lbl:LabelExpression? 
+    WSP* arrow:(RightArrowToken / LeftArrowToken)? WSP* EOS
+  {
+    return {
+      type: "relation",
+      left_node: lhs,
+      right_node: rhs,
+      edge: rel,
+      label: lbl,
+      direction: arrow
+    };
+  }
+  
+RelationMember
+  = lhs:Identifier WSP* card:StringLiteral? {return {ref:lhs, cardinality:card}}
+  / card:StringLiteral? WSP* rhs:Identifier  {return {ref:rhs, cardinality:card}}
+
+RelationExpression 
+  = left:RelationshipLeftEnd? body:RelationshipBody right:RelationshipRightEnd? {
+    return {
+      left_end: left,
+      right_end: right,
+      body: body
+    };
+  }
+ 
+RelationshipBody
+  = lhs:$(SolidLineToken+) hint:RelationHint?  rhs:$(SolidLineToken*) { 
+    return { 
+      style: "solid", 
+      len: lhs.length + rhs.length, 
+      hint: hint||undefined
+    } 
+  }
+  / lhs:$(BrokenLineToken+) hint:RelationHint?  rhs:$(BrokenLineToken*) { 
+    return { 
+      style: "broken", 
+      len: lhs.length + rhs.length, 
+      hint: hint||undefined
+    } 
+  }  
+
+LabelExpression
+ = ":" WSP* test:(StringLiteral/LabelChar)  {return test}
+
+LabelChar
+  = $(ALPHA/SP)+
 
 /*** Enum Expressions ***/
 EnumMembers
@@ -533,11 +533,6 @@ BrokenLineToken = "."
 
 
 /* -----  common char seq and sets  ----- */
-LabelTerminator
- = "<" 
- / ">"
- / EOS
-
 LineContinuation
   = Escape $( LF / CR / CRLF )
  
