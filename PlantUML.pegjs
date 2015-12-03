@@ -94,11 +94,11 @@ UMLStatment
   
 ElementRelationship
   = lhs:Identifier 
-    lhs_card:( __ StringLiteral)?
-     _ rel:RelationExpression _
-    rhs_card:(StringLiteral __ )?
+    lhs_card:( WSP+ StringLiteral)?
+     WSP* rel:RelationExpression WSP*
+    rhs_card:(StringLiteral WSP+ )?
     rhs:Identifier 
-    lbl:( _ LabelExpression) ? {
+    lbl:( WSP* LabelExpression) ? {
     return {
       type: "relation",
       left_node: {ref: lhs, cardinality: extractOptional(lhs_card,1) },
@@ -109,9 +109,9 @@ ElementRelationship
   }
 
 ClassDeclaration
-  = ClassToken __ id:Identifier 
-    stereotype:( _ StereotypeExpression )? 
-    body:( _ "{" LineBreak* ClassBody  LineBreak* "}" )?  {
+  = ClassToken WSP+ id:Identifier 
+    stereotype:( WSP* StereotypeExpression )? 
+    body:( WSP* "{" LineBreak* ClassBody  LineBreak* "}" )?  {
     return {
       type: "class",
       id: id,
@@ -121,8 +121,8 @@ ClassDeclaration
   }
   
 EnumDeclaration
-  = EnumToken __ id:Identifier 
-    body:( _ "{" LineBreak* EnumBody LineBreak* "}" )?  {
+  = EnumToken WSP+ id:Identifier 
+    body:( WSP* "{" LineBreak* EnumBody LineBreak* "}" )?  {
     return {
       type: "enum",
       id: id,
@@ -136,8 +136,8 @@ FormattingElement
   / SetRenderElement
   
  DocFormatHide 
-  = HideToken __ selector:$( (UMLObject (_ StereotypeExpression)?) / Annotation / EmptyLiteral ) 
-    _ element:$( "stereotype"/"method")? {
+  = HideToken WSP+ selector:$( (UMLObject (WSP* StereotypeExpression)?) / Annotation / EmptyLiteral ) 
+    WSP* element:$( "stereotype"/"method")? {
     return {
       type: "hide",
       selector: selector,
@@ -146,7 +146,7 @@ FormattingElement
   }
 
 SetRenderElement
-  = SetToken __ cmd:$(NSSepToken) __ val:StringLiteral {
+  = SetToken WSP+ cmd:$(NSSepToken) WSP+ val:StringLiteral {
     return {
       type:"set",
       command: cmd,
@@ -185,7 +185,7 @@ FooterBlock
   }
 
 TitleBlock
-  = TitleToken __ title:$(SourceCharacter*) {
+  = TitleToken WSP+ title:$(SourceCharacter*) {
     return {
       type: "title",
       text: title.trim()
@@ -193,7 +193,7 @@ TitleBlock
   }
 
 NoteBlock
-  = NoteToken _ body:StringLiteral alias:( _ AsToken __ Identifier)?
+  = NoteToken WSP* body:StringLiteral alias:( WSP* AsToken WSP+ Identifier)?
     {
       return {
         type: "note", 
@@ -201,9 +201,9 @@ NoteBlock
         alias: extractOptional(alias,2)
       }; 
     }
-  / NoteToken alias:( __ AsToken __ Identifier)?
-    LineBreak body:$( !(LineBreak EndToken __ NoteToken) .)* LineBreak
-	EndToken __ NoteToken
+  / NoteToken alias:( WSP+ AsToken WSP+ Identifier)?
+    LineBreak body:$( !(LineBreak EndToken WSP+ NoteToken) .)* LineBreak
+	EndToken WSP+ NoteToken
     {
       return {
         type: "note", 
@@ -211,7 +211,7 @@ NoteBlock
         alias: extractOptional(alias,2)
       }; 
     }
-  / NoteToken __ align:(NoteAlign __)? id:Identifier _ ":" _ body:$(SourceCharacter*)
+  / NoteToken WSP+ align:(NoteAlign WSP+)? id:Identifier WSP* ":" WSP* body:$(SourceCharacter*)
     {
       return {
         type: "note", 
@@ -219,9 +219,9 @@ NoteBlock
         alignment: extractOptional(align,0)
       }; 
     }
-  / NoteToken __ align:(NoteAlign __)? id:Identifier 
-    LineBreak body:$( !(LineBreak EndToken __ NoteToken) .)* LineBreak
-	EndToken __ NoteToken
+  / NoteToken WSP+ align:(NoteAlign WSP+)? id:Identifier 
+    LineBreak body:$( !(LineBreak EndToken WSP+ NoteToken) .)* LineBreak
+	EndToken WSP+ NoteToken
     {
       return {
         type: "note", 
@@ -231,9 +231,9 @@ NoteBlock
     }
 
 LegendBlock
-  = LegendToken meh:(__ RelationHint)?
-    LineBreak txt:$( !(LineBreak EndToken __ LegendToken) .)* LineBreak
-    EndToken __ LegendToken {
+  = LegendToken meh:(WSP+ RelationHint)?
+    LineBreak txt:$( !(LineBreak EndToken WSP+ LegendToken) .)* LineBreak
+    EndToken WSP+ LegendToken {
     return {
 	  type: "legend",
 	  text: txt,
@@ -243,7 +243,7 @@ LegendBlock
 
 /*** Other ***/
 ConstantDefinition
- = "!define" __ key:Identifier __ sub:$(SourceCharacter+) {
+ = "!define" WSP+ key:Identifier WSP+ sub:$(SourceCharacter+) {
     return {
       type: "define",
       search: key,
@@ -262,10 +262,10 @@ Identifier
   = $(!ReservedWord IdentifierStart (IdentifierPart)*)
   
 LabelText
-  = $( !":" _ (StringLiteral / (!LabelTerminator SourceCharacter)+) )
+  = $( !":" WSP* (StringLiteral / (!LabelTerminator SourceCharacter)+) )
 
 LabelExpression
-  =  ":" _ text:LabelText _ arrow:LabelTerminator {
+  =  ":" WSP* text:LabelText WSP* arrow:LabelTerminator {
     return { 
       text: text, 
       direction: arrow
@@ -305,8 +305,8 @@ ClassBody
   }
   
 MethodExpression
-  = _ scope:( ScopeModifier __ )? 
-    dtype:DatatypeExpression __ id:Identifier _ "()" {
+  = WSP* scope:( ScopeModifier WSP+ )? 
+    dtype:DatatypeExpression WSP+ id:Identifier WSP* "()" {
     return {
        type: "method",
        name: id,
@@ -316,10 +316,10 @@ MethodExpression
    }
   
 PropertyExpression
-   = _ scope:( ScopeModifier _)?
-     id:Identifier ":" _ dtype:DatatypeExpression
-     attrib:( _ AttributeExpression)?
-     stereo:( _ StereotypeExpression)? _ {
+   = WSP* scope:( ScopeModifier WSP*)?
+     id:Identifier ":" WSP* dtype:DatatypeExpression
+     attrib:( WSP* AttributeExpression)?
+     stereo:( WSP* StereotypeExpression)? WSP* {
      return {
        type: "property",
        name: id,
@@ -339,12 +339,12 @@ AttributeBody
   }
   
 AttributeMembers
-  = item:$(_ Identifier)* _ {return item.trim() }
+  = item:$(WSP* Identifier)* WSP* {return item.trim() }
     
 
 /*** Enum Expressions ***/
 EnumMembers
-  = _ id:Identifier {
+  = WSP* id:Identifier {
     return {
       type:"enum member",
       name: id
@@ -372,14 +372,14 @@ ArrayExpression
 /*** Stereotype Expressions ***/
 StereotypeExpression 
   = StereotypeOpenToken
-    _ first: StereotypeTerm rest:("," StereotypeTerm)* _
+    WSP* first: StereotypeTerm rest:("," StereotypeTerm)* WSP*
     StereotypeCloseToken 
   {
     return buildList(first,rest,1);
   }
 
 StereotypeTerm
-  = _ spot:(StereotypeSpotExpression _ )? id:$(_ Identifier)* _ {
+  = WSP* spot:(StereotypeSpotExpression WSP* )? id:$(WSP* Identifier)* WSP* {
     return {
 	  name: id,
 	  spot: extractOptional(spot,1)
@@ -463,7 +463,7 @@ RelationHint = UpToken / DownToken / LeftToken / RightToken
 
 HAlignment = CenterToken / LeftToken / RightToken
 
-NoteAlign = $(((TopToken / BottomToken / LeftToken / RightToken) __ OfToken) / OverToken)
+NoteAlign = $(((TopToken / BottomToken / LeftToken / RightToken) WSP+ OfToken) / OverToken)
 
 UpToken     = "up"i       !IdentifierPart
 DownToken   = "down"i     !IdentifierPart
@@ -502,11 +502,11 @@ AsToken     = "as"i       !IdentifierPart
 
 /* comaptiblity */
 EndHeaderToken
-  = EndToken __ HeaderToken
+  = EndToken WSP+ HeaderToken
   / "endheader"i
   
 EndFooterToken
-  = EndToken __ FooterToken
+  = EndToken WSP+ FooterToken
   / "endfooter"i
 
 /* Symbols */
@@ -557,10 +557,6 @@ Escape
 
 SQUOTE
   = "'"
-__
-  = WSP+
-_
-  = WSP*
   
 LineBreak
   = WSP* (CRLF  / LF  / CR ) WSP*
