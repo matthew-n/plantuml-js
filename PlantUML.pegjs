@@ -109,11 +109,12 @@ ElementRelationship
 ClassDeclaration
   = ClassToken WSP+ id:Identifier 
     stereotype:( WSP* StereotypeExpression )? 
-    body:( WSP* "{" NL* ClassBody  NL* "}" )?  {
+	body:ClassBody?	
+  {
     return {
       type: "class",
       id: id,
-      body:  extractOptional(body,3),
+      body: body,
       stereotype: extractOptional(stereotype, 1)
     };
   }
@@ -297,14 +298,17 @@ RelationshipBody
   }
 
 /*** class expressions **/
+
 ClassBody
-  = rest:( (MethodExpression/PropertyExpression) EOS)* {
-    return extractList(rest, 0)
-  }
+ = WSP* "{" (WSP/NL)* 
+	member:(MethodExpression/PropertyExpression)* 
+   "}" 
+   EOS 
+   {return member}
   
 MethodExpression
   = WSP* scope:( ScopeModifier WSP+ )? 
-    dtype:DatatypeExpression WSP+ id:Identifier WSP* "()" {
+    dtype:DatatypeExpression WSP+ id:Identifier WSP* "()" (WSP/NL)*{
     return {
        type: "method",
        name: id,
@@ -317,7 +321,7 @@ PropertyExpression
    = WSP* scope:( ScopeModifier WSP*)?
      id:Identifier ":" WSP* dtype:DatatypeExpression
      attrib:( WSP* AttributeExpression)?
-     stereo:( WSP* StereotypeExpression)? WSP* {
+     stereo:( WSP* StereotypeExpression)? (WSP/NL)*{
      return {
        type: "property",
        name: id,
