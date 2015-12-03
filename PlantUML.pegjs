@@ -293,8 +293,8 @@ AttributeMembers
   = item:$(WSP* Identifier)* WSP* {return item.trim() }
 
 
- /** Relation Expression**/ 
-ElementRelationship
+  /** Relation Expression**/ 
+ ElementRelationship
   = lhs:RelationMember WSP*  rel:RelationExpression WSP* 
     rhs:RelationMember WSP* lbl:LabelExpression? 
     WSP* arrow:(RightArrowToken / LeftArrowToken)? WSP* EOS
@@ -308,11 +308,11 @@ ElementRelationship
       direction: arrow
     };
   }
-  
+
 RelationMember
   = lhs:Identifier WSP* card:StringLiteral? {return {ref:lhs, cardinality:card}}
   / card:StringLiteral? WSP* rhs:Identifier  {return {ref:rhs, cardinality:card}}
-
+  
 RelationExpression 
   = left:RelationshipLeftEnd? body:RelationshipBody right:RelationshipRightEnd? {
     return {
@@ -336,8 +336,8 @@ RelationshipBody
       len: lhs.length + rhs.length, 
       hint: hint||undefined
     } 
-  }  
-
+  }
+  
 LabelExpression
  = ":" WSP* test:(StringLiteral/LabelChar)  {return test}
 
@@ -561,16 +561,7 @@ EOS
   = ( ";"?(WSP/NL)*
      / !(";").
     ) {}
-/*
-  = $(NL / (WSP* ";" WSP*))+  // new-line or ; terminated statements
-  / $(WSP* & "}" )                    // new of enum/class body
-  / $(WSP* &SQUOTE)                   // begining of comment
- */
- /*
-  EOS
-  = ";"?(WSP/NL)* {}
-  / !(";").
- */
+
 
  /*
  * Augmented BNF for Syntax Specifications: ABNF
