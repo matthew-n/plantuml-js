@@ -574,26 +574,52 @@ EOS
  /*
  * Augmented BNF for Syntax Specifications: ABNF
  *
- * http://tools.ietf.org/html/rfc5234
- */
+ * http://tools.ietf.org/html/rfc5234#appendix-B Core ABNF of ABNF 
 
-/* http://tools.ietf.org/html/rfc5234#appendix-B Core ABNF of ABNF */
-ALPHA
-  = [\x41-\x5A]
-  / [\x61-\x7A]
+ from GitHub project: core-pegjs <https://github.com/for-GET/core-pegjs>
+  file: /src/ietf/rfc5234-core-abnf.pegjs
+ 
+*/
+LWSP
+  = $(WSP / CRLF)* {}
+  
+WSP
+  = (SP / HTAB) {}
+
+CRLF
+  = CR LF
+
+HEXDIG
+  = DIGIT
+  / "A"i
+  / "B"i
+  / "C"i
+  / "D"i
+  / "E"i
+  / "F"i
 
 BIT
   = "0"
   / "1"
 
-CHAR
-  = [\x01-\x7F]
-
 CR
   = "\x0D"
+  
+HTAB
+  = "\x09"
 
-CRLF
-  = CR LF
+LF
+  = "\x0A"
+
+SP
+ = "\x20"
+ 
+ALPHA
+  = [\x41-\x5A]
+  / [\x61-\x7A]
+
+CHAR
+  = [\x01-\x7F]
 
 CTL
   = [\x00-\x1F]
@@ -605,35 +631,8 @@ DIGIT
 DQUOTE
   = [\x22]
 
-HEXDIG
-  = DIGIT
-  / "A"i
-  / "B"i
-  / "C"i
-  / "D"i
-  / "E"i
-  / "F"i
-
-HTAB
-  = "\x09"
-
-LF
-  = "\x0A"
-
-LWSP
-  = $(WSP / CRLF WSP)*
-
 OCTET
   = [\x00-\xFF]
 
-SP
-  = "\x20"
-
 VCHAR
   = [\x21-\x7E]
-
-WSP
-  = SP
-  / HTAB
-  
-  
