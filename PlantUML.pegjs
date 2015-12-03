@@ -111,7 +111,7 @@ ElementRelationship
 ClassDeclaration
   = ClassToken WSP+ id:Identifier 
     stereotype:( WSP* StereotypeExpression )? 
-    body:( WSP* "{" LineBreak* ClassBody  LineBreak* "}" )?  {
+    body:( WSP* "{" NL* ClassBody  NL* "}" )?  {
     return {
       type: "class",
       id: id,
@@ -122,7 +122,7 @@ ClassDeclaration
   
 EnumDeclaration
   = EnumToken WSP+ id:Identifier 
-    body:( WSP* "{" LineBreak* EnumBody LineBreak* "}" )?  {
+    body:( WSP* "{" NL* EnumBody NL* "}" )?  {
     return {
       type: "enum",
       id: id,
@@ -164,7 +164,7 @@ AnnotaionElement
  
 HeaderBlock
   = align:HAlignment? HeaderToken 
-    LineBreak body:$( !(LineBreak EndHeaderToken) .)* LineBreak
+    NL body:$( !(NL EndHeaderToken) .)* NL
     EndHeaderToken {
     return {
       type: "header",
@@ -175,7 +175,7 @@ HeaderBlock
   
 FooterBlock
   = align:HAlignment? FooterToken
-    LineBreak body:$( !(LineBreak EndFooterToken) .)* LineBreak
+    NL body:$( !(NL EndFooterToken) .)* NL
 	EndFooterToken {
     return {
 	    type: "footer",
@@ -202,7 +202,7 @@ NoteBlock
       }; 
     }
   / NoteToken alias:( WSP+ AsToken WSP+ Identifier)?
-    LineBreak body:$( !(LineBreak EndToken WSP+ NoteToken) .)* LineBreak
+    NL body:$( !(NL EndToken WSP+ NoteToken) .)* NL
 	EndToken WSP+ NoteToken
     {
       return {
@@ -220,7 +220,7 @@ NoteBlock
       }; 
     }
   / NoteToken WSP+ align:(NoteAlign WSP+)? id:Identifier 
-    LineBreak body:$( !(LineBreak EndToken WSP+ NoteToken) .)* LineBreak
+    NL body:$( !(NL EndToken WSP+ NoteToken) .)* NL
 	EndToken WSP+ NoteToken
     {
       return {
@@ -232,7 +232,7 @@ NoteBlock
 
 LegendBlock
   = LegendToken meh:(WSP+ RelationHint)?
-    LineBreak txt:$( !(LineBreak EndToken WSP+ LegendToken) .)* LineBreak
+    NL txt:$( !(NL EndToken WSP+ LegendToken) .)* NL
     EndToken WSP+ LegendToken {
     return {
 	  type: "legend",
@@ -558,11 +558,10 @@ Escape
 SQUOTE
   = "'"
   
-LineBreak
-  = WSP* (CRLF  / LF  / CR ) WSP*
+NL = (CRLF/CR/LF)
   
 EOS
-  = $(LineBreak / (WSP* ";" WSP*))+  // new-line or ; terminated statements
+  = $(NL / (WSP* ";" WSP*))+  // new-line or ; terminated statements
   / $(WSP* & "}" )                    // new of enum/class body
   / $(WSP* &SQUOTE)                   // begining of comment
  
