@@ -71,12 +71,10 @@
 }
 
 start
- = instructions
+ = (instructions)+
  
 instructions
-  = first:instruction? rest:(EOS instruction)* EOS? {
-    return ( first ? [first] : []). concat(extractList(rest,1));
-  }
+ = WSP* foo:instruction EOS? {return foo}
   
 instruction
   = UMLStatment
@@ -561,10 +559,19 @@ SQUOTE
 NL = (CRLF/CR/LF)
   
 EOS
+  = ( ";"?(WSP/NL)*
+     / !(";").
+    ) {}
+/*
   = $(NL / (WSP* ";" WSP*))+  // new-line or ; terminated statements
   / $(WSP* & "}" )                    // new of enum/class body
   / $(WSP* &SQUOTE)                   // begining of comment
- 
+ */
+ /*
+  EOS
+  = ";"?(WSP/NL)* {}
+  / !(";").
+ */
 
  /*
  * Augmented BNF for Syntax Specifications: ABNF
