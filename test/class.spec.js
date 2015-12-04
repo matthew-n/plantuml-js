@@ -26,7 +26,7 @@ describe ('PlantUML Class Diagram', function() {
 
 			expect(parsed[0]).to.have.property('type','enum');
 			expect(parsed[0]).to.have.property('id','bar');
-			expect(parsed[0]).to.have.property('body').that.is.undefined;
+			expect(parsed[0]).to.have.property('body').that.is.null;
 		});
 		
 		it('with members', function(){
@@ -45,7 +45,7 @@ describe ('PlantUML Class Diagram', function() {
 
 				expect(parsed[0]).to.have.property('id',className);
 				expect(parsed[0]).to.have.property('type','class');
-				expect(parsed[0]).to.have.property('body').that.is.undefined; 
+				expect(parsed[0]).to.have.property('body').that.is.null; 
 				// expect(parsed[0]).to.have.property('stereotype').that.is.undefined; 
 			}
 			it('name only', function() {
