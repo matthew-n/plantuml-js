@@ -148,7 +148,7 @@ FooterBlock
   = align:HAlignment? FooterToken 
     body:$( !EndFooterToken .)+
     EndFooterToken 
-  	{ return { type: "footer", body: body, alignment: align } }
+  		{ return { type: "footer", body: body, alignment: align } }
 
 LegendBlock
   = LegendToken align:LegendAlignment? 
@@ -158,7 +158,7 @@ LegendBlock
 
 LegendAlignment 
   = (WSP+ RelationHint)
-  
+
 TitleBlock
   = TitleToken WSP+ title:$((CHAR)+) 
   		{ return { type: "title", text: title }; }
@@ -175,7 +175,7 @@ NoteBlock
   /
   	NoteToken align:NoteAlign? body:NoteBody EOS
     	{return {type: "note",body: body, alignment:align }}
-
+ 
 EndNoteToken = EndToken WSP NoteToken
 
 NoteBody 
@@ -253,10 +253,10 @@ AttributeMembers
   = item:$(WSP* Identifier)* WSP* {return item.trim() }
 
 
-  /** Relation Expression**/ 
+/** Relation Expression**/ 
  ElementRelationship
-  = lhs:RelationMember WSP*  rel:RelationExpression WSP* 
-    rhs:RelationMember WSP* lbl:LabelExpression? 
+  = lhs:RelationMember rel:RelationExpression 
+    rhs:RelationMember lbl:LabelExpression? 
     WSP* arrow:(RightArrowToken / LeftArrowToken)? WSP* EOS
   {
     return {
@@ -270,11 +270,11 @@ AttributeMembers
   }
 
 RelationMember
-  = lhs:Identifier WSP* card:StringLiteral? {return {ref:lhs, cardinality:card}}
+  = WSP* lhs:Identifier card:StringLiteral? {return {ref:lhs, cardinality:card}}
   / card:StringLiteral? WSP* rhs:Identifier  {return {ref:rhs, cardinality:card}}
   
 RelationExpression 
-  = left:RelationshipLeftEnd? body:RelationshipBody right:RelationshipRightEnd? {
+  = WSP* left:RelationshipLeftEnd? body:RelationshipBody right:RelationshipRightEnd? {
     return {
       left_end: left,
       right_end: right,
@@ -297,7 +297,7 @@ RelationshipBody
       hint: hint||undefined
     } 
   }
-  
+
 
 /*** Enum Expressions ***/
 EnumDeclaration
