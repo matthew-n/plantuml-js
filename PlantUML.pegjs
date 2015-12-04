@@ -128,6 +128,7 @@ SetRenderElement
       value: val
     };
   }
+  
 
 /*** Annotation Elements ***/
 AnnotaionElement 
@@ -139,82 +140,55 @@ AnnotaionElement
  
 HeaderBlock
   = align:HAlignment? HeaderToken 
-    NL body:$( !(NL EndHeaderToken) .)* NL
-    EndHeaderToken {
-    return {
-      type: "header",
-      body: body.trim(),
-	  alignment: align
-    };
-  }
+    body:$( !EndHeaderToken .)+
+    EndHeaderToken 
+  		{ return { type: "header", body: body, alignment: align }}
   
 FooterBlock
-  = align:HAlignment? FooterToken
-    NL body:$( !(NL EndFooterToken) .)* NL
-	EndFooterToken {
-    return {
-	    type: "footer",
-		body: body.trim(),
-		alignment: align
-	}
-  }
-
-TitleBlock
-  = TitleToken WSP+ title:$(SourceCharacter*) {
-    return {
-      type: "title",
-      text: title.trim()
-    };
-  }
-
-NoteBlock
-  = NoteToken WSP* body:StringLiteral alias:( WSP* AsToken WSP+ Identifier)?
-    {
-      return {
-        type: "note", 
-        body: body, 
-        alias: extractOptional(alias,2)
-      }; 
-    }
-  / NoteToken alias:( WSP+ AsToken WSP+ Identifier)?
-    NL body:$( !(NL EndToken WSP+ NoteToken) .)* NL
-	EndToken WSP+ NoteToken
-    {
-      return {
-        type: "note", 
-        body: body.trim(), 
-        alias: extractOptional(alias,2)
-      }; 
-    }
-  / NoteToken WSP+ align:(NoteAlign WSP+)? id:Identifier WSP* ":" WSP* body:$(SourceCharacter*)
-    {
-      return {
-        type: "note", 
-        body: body.trim(), 
-        alignment: extractOptional(align,0)
-      }; 
-    }
-  / NoteToken WSP+ align:(NoteAlign WSP+)? id:Identifier 
-    NL body:$( !(NL EndToken WSP+ NoteToken) .)* NL
-	EndToken WSP+ NoteToken
-    {
-      return {
-        type: "note", 
-        body: body.trim(), 
-        alignment: extractOptional(align,0)
-      }; 
-    }
+  = align:HAlignment? FooterToken 
+    body:$( !EndFooterToken .)+
+    EndFooterToken 
+  	{ return { type: "footer", body: body, alignment: align } }
 
 LegendBlock
-  = LegendToken meh:(WSP+ RelationHint)?
-    NL txt:$( !(NL EndToken WSP+ LegendToken) .)* NL
-    EndToken WSP+ LegendToken {
-    return {
-	  type: "legend",
-	  text: txt,
-	  direction: extractOptional(meh,1)
-    };
-  }
+  = LegendToken align:LegendAlignment? 
+  	txt:$( !EndLegendToken .)+  
+    EndLegendToken 
+  		{ return { type: "legend", text: txt, direction: align }}
+
+LegendAlignment 
+  = (WSP+ RelationHint)
+  
+TitleBlock
+  = TitleToken WSP+ title:$((CHAR)+) 
+  		{ return { type: "title", text: title }; }
+        
+NoteBlock
+  = NoteToken body:StringLiteral name:Alias? EOS
+		{ return { type: "note", body: body,  alias: name };  } 
+  /
+	NoteToken align:NoteAlign? body:LabelExpression EOS
+    	{return {type: "note",body: body, alignment:align }}
+  /        
+  	NoteToken name:Alias? body:NoteBody EOS
+  		{return {type:"note", body: body, alias:name}}
+  /
+  	NoteToken align:NoteAlign? body:NoteBody EOS
+    	{return {type: "note",body: body, alignment:align }}
+
+EndNoteToken = EndToken WSP NoteToken
+
+NoteBody 
+  = (WSP/NL)* body:$( !EndNoteToken .)+ EndNoteToken 
+    	{return {type:"block", value: body};}
+
+Alias
+  = WSP+ AsToken WSP+ id:Identifier {return id}
+
+NoteAlign 
+ = WSP+ align:$(((TopToken / BottomToken / LeftToken / RightToken) WSP+ OfToken) / OverToken)
+   WSP+ id:Identifier
+   		{return { ref:id, direction:align}}
 
 /*** Other ***/
 ConstantDefinition
@@ -388,7 +362,7 @@ StereotypeSpotExpression
   
 /* -----         Literals           ----- */
 StringLiteral "string"
-  = DQUOTE chars:$(DoubleStringCharacter)* DQUOTE {
+  = WSP+ DQUOTE chars:$(DoubleStringCharacter)* DQUOTE {
       return { type: "Literal", value: chars };
     }
  
@@ -456,8 +430,6 @@ RelationHint = UpToken / DownToken / LeftToken / RightToken
 
 HAlignment = CenterToken / LeftToken / RightToken
 
-NoteAlign = $(((TopToken / BottomToken / LeftToken / RightToken) WSP+ OfToken) / OverToken)
-
 UpToken     = "up"i       !IdentifierPart
 DownToken   = "down"i     !IdentifierPart
 LeftToken   = "left"i     !IdentifierPart
@@ -495,12 +467,15 @@ AsToken     = "as"i       !IdentifierPart
 
 /* comaptiblity */
 EndHeaderToken
-  = EndToken WSP+ HeaderToken
-  / "endheader"i
+  = "endheader"i !IdentifierPart
+  / EndToken WSP+ HeaderToken
   
 EndFooterToken
-  = EndToken WSP+ FooterToken
-  / "endfooter"i
+  = "endfooter"i !IdentifierPart
+  / EndToken WSP+ FooterToken
+
+EndLegendToken 
+  = EndToken WSP+ LegendToken
 
 /* Symbols */
 PrivateToken   = "-" 
