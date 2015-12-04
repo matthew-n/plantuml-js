@@ -1,134 +1,23 @@
-
-{
-  var TYPES_TO_PROPERTY_NAMES = {
-    CallExpression:   "callee",
-    MemberExpression: "object",
-  };
-
-  function filledArray(count, value) {
-    var result = new Array(count), i;
-
-    for (i = 0; i < count; i++) {
-      result[i] = value;
-    }
-
-    return result;
-  }
-
-  function extractOptional(optional, index) {
-    return optional ? optional[index] : undefined;
-  }
-
-  function extractList(list, index) {
-    var result = new Array(list.length), i;
-
-    for (i = 0; i < list.length; i++) {
-      result[i] = list[i][index];
-    }
-
-    return result;
-  }
-
-  function buildList(first, rest, index) {
-    return [first].concat(extractList(rest, index));
-  }
-
-  function buildTree(first, rest, builder) {
-    var result = first, i;
-
-    for (i = 0; i < rest.length; i++) {
-      result = builder(result, rest[i]);
-    }
-
-    return result;
-  }
-
-  function buildBinaryExpression(first, rest) {
-    return buildTree(first, rest, function(result, element) {
-      return {
-        type:     "BinaryExpression",
-        operator: element[1],
-        left:     result,
-        right:    element[3]
-      };
-    });
-  }
-
-  function buildLogicalExpression(first, rest) {
-    return buildTree(first, rest, function(result, element) {
-      return {
-        type:     "LogicalExpression",
-        operator: element[1],
-        left:     result,
-        right:    element[3]
-      };
-    });
-  }
-
-  function optionalList(value) {
-    return value !== null ? value : [];
-  }
-}
-
 start
- = instructions
+ = (instructions)+
  
 instructions
-  = first:instruction? rest:(EOS instruction)* EOS? {
-    return ( first ? [first] : []). concat(extractList(rest,1));
-  }
-  
+ = (WSP/NL)* foo:instruction EOS? {return foo}
+ 
 instruction
   = UMLStatment
   / AnnotaionElement
   / FormattingElement
   / ConstantDefinition
   / Comment
-
+  
 /* -----         Statements         ----- */
 
 UMLStatment
   = ElementRelationship
   / ClassDeclaration
   / EnumDeclaration
-  
-ElementRelationship
-  = lhs:Identifier 
-    lhs_card:( __ StringLiteral)?
-     _ rel:RelationExpression _
-    rhs_card:(StringLiteral __ )?
-    rhs:Identifier 
-    lbl:( _ LabelExpression) ? {
-    return {
-      type: "relation",
-      left_node: {ref: lhs, cardinality: extractOptional(lhs_card,1) },
-      right_node: {ref: rhs, cardinality: extractOptional(rhs_card,0) },
-      edge: rel,
-      label: extractOptional(lbl,1)
-    };
-  }
 
-ClassDeclaration
-  = ClassToken __ id:Identifier 
-    stereotype:( _ StereotypeExpression )? 
-    body:( _ "{" LineBreak* ClassBody  LineBreak* "}" )?  {
-    return {
-      type: "class",
-      id: id,
-      body:  extractOptional(body,3),
-      stereotype: extractOptional(stereotype, 1)
-    };
-  }
-  
-EnumDeclaration
-  = EnumToken __ id:Identifier 
-    body:( _ "{" LineBreak* EnumBody LineBreak* "}" )?  {
-    return {
-      type: "enum",
-      id: id,
-      body:  optionalList(extractOptional(body, 3)),
-    };
-  }
   
 /*** Formatting Elements ***/
 FormattingElement
@@ -136,8 +25,7 @@ FormattingElement
   / SetRenderElement
   
  DocFormatHide 
-  = HideToken __ selector:$( (UMLObject (_ StereotypeExpression)?) / Annotation / EmptyLiteral ) 
-    _ element:$( "stereotype"/"method")? {
+  = HideToken WSP+ selector:DocFormatSelector WSP* element:$( "stereotype"/"method")? {
     return {
       type: "hide",
       selector: selector,
@@ -145,14 +33,18 @@ FormattingElement
     }
   }
 
+DocFormatSelector 
+  = $( ((ClassToken/EnumToken) StereotypeExpression?) / Annotation / EmptyLiteral ) 
+
 SetRenderElement
-  = SetToken __ cmd:$(NSSepToken) __ val:StringLiteral {
+  = SetToken WSP+ cmd:$(NSSepToken) val:StringLiteral {
     return {
       type:"set",
       command: cmd,
       value: val
     };
   }
+  
 
 /*** Annotation Elements ***/
 AnnotaionElement 
@@ -164,86 +56,59 @@ AnnotaionElement
  
 HeaderBlock
   = align:HAlignment? HeaderToken 
-    LineBreak body:$( !(LineBreak EndHeaderToken) .)* LineBreak
-    EndHeaderToken {
-    return {
-      type: "header",
-      body: body.trim(),
-	  alignment: align
-    };
-  }
+    body:$( !EndHeaderToken .)+
+    EndHeaderToken 
+  		{ return { type: "header", body: body.trim(), alignment: align }}
   
 FooterBlock
-  = align:HAlignment? FooterToken
-    LineBreak body:$( !(LineBreak EndFooterToken) .)* LineBreak
-	EndFooterToken {
-    return {
-	    type: "footer",
-		body: body.trim(),
-		alignment: align
-	}
-  }
-
-TitleBlock
-  = TitleToken __ title:$(SourceCharacter*) {
-    return {
-      type: "title",
-      text: title.trim()
-    };
-  }
-
-NoteBlock
-  = NoteToken _ body:StringLiteral alias:( _ AsToken __ Identifier)?
-    {
-      return {
-        type: "note", 
-        body: body, 
-        alias: extractOptional(alias,2)
-      }; 
-    }
-  / NoteToken alias:( __ AsToken __ Identifier)?
-    LineBreak body:$( !(LineBreak EndToken __ NoteToken) .)* LineBreak
-	EndToken __ NoteToken
-    {
-      return {
-        type: "note", 
-        body: body.trim(), 
-        alias: extractOptional(alias,2)
-      }; 
-    }
-  / NoteToken __ align:(NoteAlign __)? id:Identifier _ ":" _ body:$(SourceCharacter*)
-    {
-      return {
-        type: "note", 
-        body: body.trim(), 
-        alignment: extractOptional(align,0)
-      }; 
-    }
-  / NoteToken __ align:(NoteAlign __)? id:Identifier 
-    LineBreak body:$( !(LineBreak EndToken __ NoteToken) .)* LineBreak
-	EndToken __ NoteToken
-    {
-      return {
-        type: "note", 
-        body: body.trim(), 
-        alignment: extractOptional(align,0)
-      }; 
-    }
+  = align:HAlignment? FooterToken 
+    body:$( !EndFooterToken .)+
+    EndFooterToken 
+  		{ return { type: "footer", body: body.trim(), alignment: align } }
 
 LegendBlock
-  = LegendToken meh:(__ RelationHint)?
-    LineBreak txt:$( !(LineBreak EndToken __ LegendToken) .)* LineBreak
-    EndToken __ LegendToken {
-    return {
-	  type: "legend",
-	  text: txt,
-	  direction: extractOptional(meh,1)
-    };
-  }
+  = LegendToken align:LegendAlignment? 
+  	txt:$( !EndLegendToken .)+  
+    EndLegendToken 
+  		{ return { type: "legend", text: txt.trim(), direction: align }}
+
+LegendAlignment 
+  = (WSP+ RelationHint)
+
+TitleBlock
+  = TitleToken title:LabelText
+  		{ return { type: "title", text: title.trim() }; }
+        
+NoteBlock
+  = NoteToken body:StringLiteral name:Alias? EOS
+		{ return { type: "note", body: body,  alias: name };  } 
+  /
+	NoteToken align:NoteAlign? body:LabelExpression EOS
+    	{return {type: "note",body: body, alignment:align }}
+  /        
+  	NoteToken name:Alias? body:NoteBody EOS
+  		{return {type:"note", body: body, alias:name}}
+  /
+  	NoteToken align:NoteAlign? body:NoteBody EOS
+    	{return {type: "note",body: body, alignment:align }}
+ 
+EndNoteToken = EndToken WSP NoteToken
+
+NoteBody 
+  = (WSP/NL)* body:$( !EndNoteToken .)+ EndNoteToken 
+    	{return {type:"block", value: body.trim()};}
+
+Alias
+  = WSP+ AsToken WSP+ id:Identifier {return id}
+
+NoteAlign 
+ = WSP+ align:$(((TopToken / BottomToken / LeftToken / RightToken) WSP+ OfToken) / OverToken)
+   WSP+ id:Identifier
+   		{return { ref:id, direction:align}}
 
 /*** Other ***/
 ConstantDefinition
- = "!define" __ key:Identifier __ sub:$(SourceCharacter+) {
+ = "!define" WSP+ key:Identifier WSP+ sub:$(SourceCharacter+) {
     return {
       type: "define",
       search: key,
@@ -257,24 +122,64 @@ Comment
     }
 
 
-/* -----       Expressions          ----- */
-Identifier
-  = $(!ReservedWord IdentifierStart (IdentifierPart)*)
-  
-LabelText
-  = $( !":" _ (StringLiteral / (!LabelTerminator SourceCharacter)+) )
+/*** class expressions **/
+ClassDeclaration
+  = ClassToken WSP+ id:Identifier stereotype:StereotypeExpression? body:ClassBody?	
+  		{ return { type: "class", id: id, body: body, stereotype: stereotype } }
 
-LabelExpression
-  =  ":" _ text:LabelText _ arrow:LabelTerminator {
-    return { 
-      text: text, 
-      direction: arrow
-    }
-  }
+ClassBody
+ = WSP* "{" (NL/WSP)* member:(MethodExpression/PropertyExpression)* "}"  EOS 
+		{return member}
+
+MethodExpression
+  = WSP* scope:ScopeModifier? dtype:DatatypeExpression WSP+ id:Identifier WSP* "()"  EOS
+		{ return { type: "method", name: id, data_type: dtype, scope: scope } }
   
- /** Relation Expression**/ 
+PropertyExpression
+   = WSP* scope:ScopeModifier? 
+     WSP* id:Identifier 
+     dtype:DatatypeExpression
+     attrib:AttributeExpression?
+     stereo:StereotypeExpression? EOS{
+     return {
+       type: "property",
+       name: id,
+       data_type: dtype,
+       attributes: attrib,
+       scope: scope,
+       stereotype: stereo
+     }
+   }
+   
+AttributeExpression
+  =   WSP* "{" text:$(!"}".)+ "}" { return text; }
+
+AttributeMembers
+  = item:$(WSP* Identifier)* WSP* {return item.trim() }
+
+
+/** Relation Expression**/ 
+ ElementRelationship
+  = lhs:RelationMember rel:RelationExpression 
+    rhs:RelationMember lbl:LabelExpression? 
+    WSP* arrow:(RightArrowToken / LeftArrowToken)? WSP* EOS
+  {
+    return {
+      type: "relation",
+      left_node: lhs,
+      right_node: rhs,
+      edge: rel,
+      label: lbl,
+      direction: arrow
+    };
+  }
+
+RelationMember
+  = WSP* lhs:Identifier card:StringLiteral? {return {ref:lhs, cardinality:card}}
+  / card:StringLiteral? WSP* rhs:Identifier  {return {ref:rhs, cardinality:card}}
+  
 RelationExpression 
-  = left:RelationshipLeftEnd? body:RelationshipBody right:RelationshipRightEnd? {
+  = WSP* left:RelationshipLeftEnd? body:RelationshipBody right:RelationshipRightEnd? {
     return {
       left_end: left,
       right_end: right,
@@ -298,67 +203,37 @@ RelationshipBody
     } 
   }
 
-/*** class expressions **/
-ClassBody
-  = rest:( (MethodExpression/PropertyExpression) EOS)* {
-    return extractList(rest, 0)
-  }
-  
-MethodExpression
-  = _ scope:( ScopeModifier __ )? 
-    dtype:DatatypeExpression __ id:Identifier _ "()" {
-    return {
-       type: "method",
-       name: id,
-       data_type: dtype,
-       scope: extractOptional(scope,0)
-     }
-   }
-  
-PropertyExpression
-   = _ scope:( ScopeModifier _)?
-     id:Identifier ":" _ dtype:DatatypeExpression
-     attrib:( _ AttributeExpression)?
-     stereo:( _ StereotypeExpression)? _ {
-     return {
-       type: "property",
-       name: id,
-       data_type: dtype,
-       attributes: extractOptional(attrib,1),
-       scope: extractOptional(scope,0),
-       stereotype: extractOptional(stereo,1)
-     }
-   }
-   
-AttributeExpression
-  = "{" list:AttributeBody "}" { return list; }
-
-AttributeBody 
-  = first:AttributeMembers rest:("," AttributeMembers)*  {
-    return buildList(first,rest,1)
-  }
-  
-AttributeMembers
-  = item:$(_ Identifier)* _ {return item.trim() }
-    
 
 /*** Enum Expressions ***/
-EnumMembers
-  = _ id:Identifier {
-    return {
-      type:"enum member",
-      name: id
-    };
-  }
-
+EnumDeclaration
+  = EnumToken WSP+ id:Identifier body:EnumBody? EOS 
+  		{ return { type: "enum", id: id, body:  body}; }
+  
 EnumBody 
-  = rest:(EnumMembers EOS )* {
-    return extractList(rest, 0)
-  }  
+  = WSP* "{" (NL/WSP)*  member:EnumMembers+ (NL/WSP)*  "}"  
+  		{return member;}
 
+EnumMembers
+  = (NL/WSP)* id:Identifier EOS? 
+  		{ return { type:"enum member", name: id }; }
+
+/*** Stereotype Expressions ***/
+StereotypeExpression 
+  = WSP* StereotypeOpenToken steroTypes:StereotypeTerm+ StereotypeCloseToken 
+  		{ return steroTypes }
+
+StereotypeTerm
+  = WSP* spot:StereotypeSpotExpression? id:$(ALPHA/SP)+ ","?
+  		{ return { name: id, spot: spot } }
+
+StereotypeSpotExpression
+  = WSP* "(" id:IdentifierPart "," color:(HexIntegerLiteral/id:Identifier) ")" 
+  		{ return { shorthand:id, color: color } }
+  
+/* -----       Expressions          ----- */
 DatatypeExpression
-  = ArrayExpression
-  / Identifier
+  = WSP* (":" WSP*)?  dtype:(ArrayExpression / Identifier) 
+ 	 {return dtype}
   
 ArrayExpression
   = dtype:Identifier "[" size:$(DIGIT*)? "]"{
@@ -369,40 +244,25 @@ ArrayExpression
     }
   }
 
-/*** Stereotype Expressions ***/
-StereotypeExpression 
-  = StereotypeOpenToken
-    _ first: StereotypeTerm rest:("," StereotypeTerm)* _
-    StereotypeCloseToken 
-  {
-    return buildList(first,rest,1);
-  }
+Identifier
+  = $(!ReservedWord IdentifierStart (IdentifierPart)*)
+ 
+LabelExpression
+ = WSP* ":" lbl:(StringLiteral/LabelText)  {return lbl}
 
-StereotypeTerm
-  = _ spot:(StereotypeSpotExpression _ )? id:$(_ Identifier)* _ {
-    return {
-	  name: id,
-	  spot: extractOptional(spot,1)
-	};
-  }
-
-StereotypeSpotExpression
-  = "(" id:IdentifierPart "," color:(HexIntegerLiteral/id:Identifier) ")" {
-    return {
-      shorthand:id,
-      color: color
-    };
-  }
-  
+LabelText
+  = WSP* txt:$(!NL.)+ {return txt}
+ 
 /* -----         Literals           ----- */
 StringLiteral "string"
-  = DQUOTE chars:$(DoubleStringCharacter)* DQUOTE {
+  = WSP+ DQUOTE chars:$(DoubleStringCharacter)* DQUOTE {
       return { type: "Literal", value: chars };
     }
  
 DoubleStringCharacter
-  = !(DQUOTE / Escape) SourceCharacter
-  / LineContinuation
+  = !(DQUOTE)(Escape DQUOTE/ SourceCharacter)
+  / NL
+  / WSP
 
 HexIntegerLiteral
   = "#" digits:$HEXDIG+ {
@@ -463,8 +323,6 @@ RelationHint = UpToken / DownToken / LeftToken / RightToken
 
 HAlignment = CenterToken / LeftToken / RightToken
 
-NoteAlign = $(((TopToken / BottomToken / LeftToken / RightToken) __ OfToken) / OverToken)
-
 UpToken     = "up"i       !IdentifierPart
 DownToken   = "down"i     !IdentifierPart
 LeftToken   = "left"i     !IdentifierPart
@@ -502,12 +360,15 @@ AsToken     = "as"i       !IdentifierPart
 
 /* comaptiblity */
 EndHeaderToken
-  = EndToken __ HeaderToken
-  / "endheader"i
+  = "endheader"i !IdentifierPart
+  / EndToken WSP+ HeaderToken
   
 EndFooterToken
-  = EndToken __ FooterToken
-  / "endfooter"i
+  = "endfooter"i !IdentifierPart
+  / EndToken WSP+ FooterToken
+
+EndLegendToken 
+  = EndToken WSP+ LegendToken
 
 /* Symbols */
 PrivateToken   = "-" 
@@ -531,11 +392,6 @@ BrokenLineToken = "."
 
 
 /* -----  common char seq and sets  ----- */
-LabelTerminator
- = "<" 
- / ">"
- / EOS
-
 LineContinuation
   = Escape $( LF / CR / CRLF )
  
@@ -557,43 +413,64 @@ Escape
 
 SQUOTE
   = "'"
-__
-  = WSP+
-_
-  = WSP*
   
-LineBreak
-  = WSP* (CRLF  / LF  / CR ) WSP*
+NL = (CRLF/CR/LF)
   
 EOS
-  = $(LineBreak / (WSP* ";" WSP*))+  // new-line or ; terminated statements
-  / $(WSP* & "}" )                    // new of enum/class body
-  / $(WSP* &SQUOTE)                   // begining of comment
- 
+  = ( ";"?(WSP/NL)*
+     / !(";").
+    ) {}
+
 
  /*
  * Augmented BNF for Syntax Specifications: ABNF
  *
- * http://tools.ietf.org/html/rfc5234
- */
+ * http://tools.ietf.org/html/rfc5234#appendix-B Core ABNF of ABNF 
 
-/* http://tools.ietf.org/html/rfc5234#appendix-B Core ABNF of ABNF */
-ALPHA
-  = [\x41-\x5A]
-  / [\x61-\x7A]
+ from GitHub project: core-pegjs <https://github.com/for-GET/core-pegjs>
+  file: /src/ietf/rfc5234-core-abnf.pegjs
+ 
+*/
+LWSP
+  = $(WSP / CRLF)* {}
+  
+WSP
+  = (SP / HTAB) {}
+
+CRLF
+  = CR LF
+
+HEXDIG
+  = DIGIT
+  / "A"i
+  / "B"i
+  / "C"i
+  / "D"i
+  / "E"i
+  / "F"i
 
 BIT
   = "0"
   / "1"
 
-CHAR
-  = [\x01-\x7F]
-
 CR
   = "\x0D"
+  
+HTAB
+  = "\x09"
 
-CRLF
-  = CR LF
+LF
+  = "\x0A"
+
+SP
+ = "\x20"
+ 
+ALPHA
+  = [\x41-\x5A]
+  / [\x61-\x7A]
+
+CHAR
+  = [\x01-\x7F]
 
 CTL
   = [\x00-\x1F]
@@ -605,35 +482,8 @@ DIGIT
 DQUOTE
   = [\x22]
 
-HEXDIG
-  = DIGIT
-  / "A"i
-  / "B"i
-  / "C"i
-  / "D"i
-  / "E"i
-  / "F"i
-
-HTAB
-  = "\x09"
-
-LF
-  = "\x0A"
-
-LWSP
-  = $(WSP / CRLF WSP)*
-
 OCTET
   = [\x00-\xFF]
 
-SP
-  = "\x20"
-
 VCHAR
   = [\x21-\x7E]
-
-WSP
-  = SP
-  / HTAB
-  
-  

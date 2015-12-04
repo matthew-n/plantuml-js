@@ -26,7 +26,7 @@ describe ('PlantUML Class Diagram', function() {
 
 			expect(parsed[0]).to.have.property('type','enum');
 			expect(parsed[0]).to.have.property('id','bar');
-			expect(parsed[0]).to.have.property('body').that.is.undefined;
+			expect(parsed[0]).to.have.property('body').that.is.null;
 		});
 		
 		it('with members', function(){
@@ -45,7 +45,7 @@ describe ('PlantUML Class Diagram', function() {
 
 				expect(parsed[0]).to.have.property('id',className);
 				expect(parsed[0]).to.have.property('type','class');
-				expect(parsed[0]).to.have.property('body').that.is.undefined; 
+				expect(parsed[0]).to.have.property('body').that.is.null; 
 				// expect(parsed[0]).to.have.property('stereotype').that.is.undefined; 
 			}
 			it('name only', function() {
@@ -70,7 +70,7 @@ describe ('PlantUML Class Diagram', function() {
 
 				expect(parsed[0]).to.have.property('stereotype')
 					.to.be.an('array')
-						.to.deep.equal([{name:'table',spot:undefined}]);
+						.to.deep.equal([{name:'table',spot:null}]);
 			});
 		});
 		
@@ -98,8 +98,8 @@ describe ('PlantUML Class Diagram', function() {
 				expect(parsed[0].body[0]).to.have.property('type','property');
 				expect(parsed[0].body[0]).to.have.property('name','id');
 				expect(parsed[0].body[0]).to.have.property('data_type','int');
-				expect(parsed[0].body[0]).to.have.property('attributes').that.is.undefined;
-				expect(parsed[0].body[0]).to.have.property('stereotype').that.is.undefined;
+				expect(parsed[0].body[0]).to.have.property('attributes').that.is.null;
+				expect(parsed[0].body[0]).to.have.property('stereotype').that.is.null;
 				/*
 				expect(parsed[0])
 					.with.deep.property('body[0]')
@@ -138,7 +138,7 @@ describe ('PlantUML Class Diagram', function() {
 				expect(parsed[0].body[0]).to.have.property('type','property');
 				expect(parsed[0].body[0]).to.have.property('name','id');
 				expect(parsed[0].body[0]).to.have.property('data_type','int');
-				expect(parsed[0].body[0]).to.have.property('attributes').that.is.undefined;
+				expect(parsed[0].body[0]).to.have.property('attributes').that.is.null;
 				expect(parsed[0].body[0]).to.have.property('stereotype').that.is.an('array');
 				
 				expect(parsed[0].body[0].stereotype[1]).to.have.property('name','SK');
@@ -156,7 +156,7 @@ describe ('PlantUML Class Diagram', function() {
 				
 				expect(parsed[0].body[0]).to.have.property('type','property');
 				expect(parsed[0].body[0]).to.have.property('name','meh');
-				expect(parsed[0].body[0]).to.have.property('attributes').that.is.undefined;
+				expect(parsed[0].body[0]).to.have.property('attributes').that.is.null;
 				expect(parsed[0].body[0]).to.have.property('data_type')
 					.to.be.an('object')
 					.to.have.all.keys('type','basetype','size');
@@ -180,9 +180,7 @@ describe ('PlantUML Class Diagram', function() {
 				expect(parsed[0].body[0]).to.have.property('type','property');
 				expect(parsed[0].body[0]).to.have.property('name','meh');			
 				expect(parsed[0].body[0]).to.have.property('data_type','int')
-				expect(parsed[0].body[0]).to.have.property('attributes')
-					.to.be.an('array')
-					.to.deep.equal(['NULL']);
+				expect(parsed[0].body[0]).to.have.property('attributes','NULL');
 
 			});
 			
@@ -199,9 +197,7 @@ describe ('PlantUML Class Diagram', function() {
 				expect(parsed[0].body[0]).to.have.property('type','property');
 				expect(parsed[0].body[0]).to.have.property('name','meh');			
 				expect(parsed[0].body[0]).to.have.property('data_type','int')
-				expect(parsed[0].body[0]).to.have.property('attributes')
-					.to.be.an('array')
-					.to.deep.equal(['NOT NULL']);
+				expect(parsed[0].body[0]).to.have.property('attributes','NOT NULL');
 			});
 			
 			it('stereotype property with attribute body', function(){
@@ -218,12 +214,10 @@ describe ('PlantUML Class Diagram', function() {
 				expect(parsed[0].body[0]).to.have.property('type','property');
 				expect(parsed[0].body[0]).to.have.property('name','meh');			
 				expect(parsed[0].body[0]).to.have.property('data_type','int')
-				expect(parsed[0].body[0]).to.have.property('attributes')
-					.to.be.an('array')
-					.to.deep.equal(['NULL']);
+				expect(parsed[0].body[0]).to.have.property('attributes','NULL');
 				expect(parsed[0].body[0]).to.have.property('stereotype')
 					.to.be.an('array')
-					.to.deep.equal([{name:'FK',spot:undefined}]);
+					.to.deep.equal([{name:'FK',spot:null}]);
 
 			});
 		});
@@ -257,21 +251,19 @@ describe ('PlantUML Class Diagram', function() {
 			});
 			
 			it('with class stereotype', function(){
-				expect(parsed[0].stereotype).to.deep.equal([{name:'table',spot:undefined}]);
+				expect(parsed[0].stereotype).to.deep.equal([{name:'table',spot:null}]);
 			});
 			
 			it('with multiple stereotype property', function(){
 				expect(parsed[0]).with.deep.property('body[0].stereotype')
-					.that.is.an('array').that.deep.equals([{name:'PK',spot:undefined},{name:'SK',spot:undefined}]);
-				expect(parsed[0]).with.deep.property('body[0].attributes').that.is.undefined;
+					.that.is.an('array').that.deep.equals([{name:'PK',spot:null},{name:'SK',spot:null}]);
+				expect(parsed[0]).with.deep.property('body[0].attributes').that.is.null;
 			});
 			
 			it('with stereotype and attributer on property', function(){
 				expect(parsed[0]).with.deep.property('body[3].stereotype')
-					.that.is.an('array').that.deep.equals([{name:'FK',spot:undefined}]);
-				expect(parsed[0]).with.deep.property('body[3].attributes')
-					.that.is.an('array')
-					.that.deep.equals( ['null']);
+					.that.is.an('array').that.deep.equals([{name:'FK',spot:null}]);
+				expect(parsed[0]).with.deep.property('body[3].attributes','null');
 			})
 		});
 	});

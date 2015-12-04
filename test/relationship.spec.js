@@ -94,25 +94,25 @@ describe('PlantUML Relationships', function() {
 	
 	describe('Relationship label', function(){
 		it('non literal', function(){
-			var parsed = parser.parse('A - B: has some relation \n');
+			var parsed = parser.parse('A - B: has some relation');
 		});
 		
 		it('literal string', function(){
-			var parsed = parser.parse('A -> B: "has some symbols: -> class" \n');
+			var parsed = parser.parse('A -> B: "has some symbols: -> class"');
 		});
 	});
 	
 	describe('Relationship label arrow', function(){
 		it('point right', function(){
-			var parsed = parser.parse('A - B: has some relation > \n');
+			var parsed = parser.parse('A - B: has some relation >');
 		});
 		
 		it('point left', function(){
-			var parsed = parser.parse('A - B: has some relation < \n');
+			var parsed = parser.parse('A - B: has some relation <');
 		});
 		
 		it('label requried before', function(){
-			expect(function(){parser.parse('A - B: < \n')}).to.throw(parser.SyntaxError);
+			expect(function(){parser.parse('A - B: <')}).to.throw(parser.SyntaxError);
 		});
 	});
 	
