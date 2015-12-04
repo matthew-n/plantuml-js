@@ -314,28 +314,16 @@ EnumMembers
 
 /*** Stereotype Expressions ***/
 StereotypeExpression 
-  = StereotypeOpenToken
-    WSP* first: StereotypeTerm rest:("," StereotypeTerm)* WSP*
-    StereotypeCloseToken 
-  {
-    return buildList(first,rest,1);
-  }
+  = StereotypeOpenToken steroTypes:StereotypeTerm+ StereotypeCloseToken 
+  		{ return steroTypes }
 
 StereotypeTerm
-  = WSP* spot:(StereotypeSpotExpression WSP* )? id:$(WSP* Identifier)* WSP* {
-    return {
-	  name: id,
-	  spot: extractOptional(spot,1)
-	};
-  }
+  = WSP* spot:StereotypeSpotExpression? id:$LabelText ","?
+  		{ return { name: id, spot: spot } }
 
 StereotypeSpotExpression
-  = "(" id:IdentifierPart "," color:(HexIntegerLiteral/id:Identifier) ")" {
-    return {
-      shorthand:id,
-      color: color
-    };
-  }
+  = WSP* "(" id:IdentifierPart "," color:(HexIntegerLiteral/id:Identifier) ")" 
+  		{ return { shorthand:id, color: color } }
   
 /* -----       Expressions          ----- */
 DatatypeExpression

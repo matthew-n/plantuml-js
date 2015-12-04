@@ -70,7 +70,7 @@ describe ('PlantUML Class Diagram', function() {
 
 				expect(parsed[0]).to.have.property('stereotype')
 					.to.be.an('array')
-						.to.deep.equal([{name:'table',spot:undefined}]);
+						.to.deep.equal([{name:'table',spot:null}]);
 			});
 		});
 		
@@ -223,7 +223,7 @@ describe ('PlantUML Class Diagram', function() {
 					.to.deep.equal(['NULL']);
 				expect(parsed[0].body[0]).to.have.property('stereotype')
 					.to.be.an('array')
-					.to.deep.equal([{name:'FK',spot:undefined}]);
+					.to.deep.equal([{name:'FK',spot:null}]);
 
 			});
 		});
@@ -257,18 +257,18 @@ describe ('PlantUML Class Diagram', function() {
 			});
 			
 			it('with class stereotype', function(){
-				expect(parsed[0].stereotype).to.deep.equal([{name:'table',spot:undefined}]);
+				expect(parsed[0].stereotype).to.deep.equal([{name:'table',spot:null}]);
 			});
 			
 			it('with multiple stereotype property', function(){
 				expect(parsed[0]).with.deep.property('body[0].stereotype')
-					.that.is.an('array').that.deep.equals([{name:'PK',spot:undefined},{name:'SK',spot:undefined}]);
+					.that.is.an('array').that.deep.equals([{name:'PK',spot:null},{name:'SK',spot:null}]);
 				expect(parsed[0]).with.deep.property('body[0].attributes').that.is.undefined;
 			});
 			
 			it('with stereotype and attributer on property', function(){
 				expect(parsed[0]).with.deep.property('body[3].stereotype')
-					.that.is.an('array').that.deep.equals([{name:'FK',spot:undefined}]);
+					.that.is.an('array').that.deep.equals([{name:'FK',spot:null}]);
 				expect(parsed[0]).with.deep.property('body[3].attributes')
 					.that.is.an('array')
 					.that.deep.equals( ['null']);
