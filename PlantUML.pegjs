@@ -58,19 +58,19 @@ HeaderBlock
   = align:HAlignment? HeaderToken 
     body:$( !EndHeaderToken .)+
     EndHeaderToken 
-  		{ return { type: "header", body: body, alignment: align }}
+  		{ return { type: "header", body: body.trim(), alignment: align }}
   
 FooterBlock
   = align:HAlignment? FooterToken 
     body:$( !EndFooterToken .)+
     EndFooterToken 
-  		{ return { type: "footer", body: body, alignment: align } }
+  		{ return { type: "footer", body: body.trim(), alignment: align } }
 
 LegendBlock
   = LegendToken align:LegendAlignment? 
   	txt:$( !EndLegendToken .)+  
     EndLegendToken 
-  		{ return { type: "legend", text: txt, direction: align }}
+  		{ return { type: "legend", text: txt.trim(), direction: align }}
 
 LegendAlignment 
   = (WSP+ RelationHint)
@@ -96,7 +96,7 @@ EndNoteToken = EndToken WSP NoteToken
 
 NoteBody 
   = (WSP/NL)* body:$( !EndNoteToken .)+ EndNoteToken 
-    	{return {type:"block", value: body};}
+    	{return {type:"block", value: body.trim()};}
 
 Alias
   = WSP+ AsToken WSP+ id:Identifier {return id}
