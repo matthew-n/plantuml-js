@@ -74,7 +74,7 @@ start
  = (instructions)+
  
 instructions
- = WSP* foo:instruction EOS? {return foo}
+ = (WSP/NL)* foo:instruction EOS? {return foo}
  
 instruction
   = UMLStatment
@@ -206,24 +206,6 @@ Comment
     }
 
 
-/* -----       Expressions          ----- */
-DatatypeExpression
-  = ArrayExpression
-  / Identifier
-  
-ArrayExpression
-  = dtype:Identifier "[" size:$(DIGIT*)? "]"{
-    return {
-      type: "array",
-      basetype: dtype,
-      size: size
-    }
-  }
-
-Identifier
-  = $(!ReservedWord IdentifierStart (IdentifierPart)*)
-  
- 
 /*** class expressions **/
 
 ClassBody
@@ -316,11 +298,6 @@ RelationshipBody
     } 
   }
   
-LabelExpression
- = ":" WSP* test:(StringLiteral/LabelChar)  {return test}
-
-LabelChar
-  = $(ALPHA/SP)+
 
 /*** Enum Expressions ***/
 EnumDeclaration
@@ -360,6 +337,29 @@ StereotypeSpotExpression
     };
   }
   
+/* -----       Expressions          ----- */
+DatatypeExpression
+  = ArrayExpression
+  / Identifier
+  
+ArrayExpression
+  = dtype:Identifier "[" size:$(DIGIT*)? "]"{
+    return {
+      type: "array",
+      basetype: dtype,
+      size: size
+    }
+  }
+
+Identifier
+  = $(!ReservedWord IdentifierStart (IdentifierPart)*)
+ 
+LabelExpression
+ = WSP* ":" lbl:(StringLiteral/LabelText)  {return lbl}
+
+LabelText
+  = WSP* txt:$(ALPHA/SP)+ {return txt}
+ 
 /* -----         Literals           ----- */
 StringLiteral "string"
   = WSP+ DQUOTE chars:$(DoubleStringCharacter)* DQUOTE {
