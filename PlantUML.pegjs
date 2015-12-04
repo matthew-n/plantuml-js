@@ -1,4 +1,3 @@
-
 {
   var TYPES_TO_PROPERTY_NAMES = {
     CallExpression:   "callee",
@@ -90,20 +89,6 @@ UMLStatment
   / ClassDeclaration
   / EnumDeclaration
 
-
-ClassDeclaration
-  = ClassToken WSP+ id:Identifier 
-    stereotype:( WSP* StereotypeExpression )? 
-	body:ClassBody?	
-  {
-    return {
-      type: "class",
-      id: id,
-      body: body,
-      stereotype: extractOptional(stereotype, 1)
-    };
-  }
-  
   
 /*** Formatting Elements ***/
 FormattingElement
@@ -207,48 +192,37 @@ Comment
 
 
 /*** class expressions **/
+ClassDeclaration
+  = ClassToken WSP+ id:Identifier stereotype:StereotypeExpression? body:ClassBody?	
+  		{ return { type: "class", id: id, body: body, stereotype: stereotype } }
 
 ClassBody
- = WSP* "{" (WSP/NL)* 
-	member:(MethodExpression/PropertyExpression)* 
-   "}" 
-   EOS 
-   {return member}
+ = WSP* "{" (NL/WSP)* member:(MethodExpression/PropertyExpression)* "}"  EOS 
+		{return member}
 
 MethodExpression
-  = WSP* scope:( ScopeModifier WSP+ )? 
-    dtype:DatatypeExpression WSP+ id:Identifier WSP* "()" (WSP/NL)*{
-    return {
-       type: "method",
-       name: id,
-       data_type: dtype,
-       scope: extractOptional(scope,0)
-     }
-   }
+  = WSP* scope:ScopeModifier? dtype:DatatypeExpression WSP+ id:Identifier WSP* "()"  EOS
+		{ return { type: "method", name: id, data_type: dtype, scope: scope } }
   
 PropertyExpression
-   = WSP* scope:( ScopeModifier WSP*)?
-     id:Identifier ":" WSP* dtype:DatatypeExpression
-     attrib:( WSP* AttributeExpression)?
-     stereo:( WSP* StereotypeExpression)? (WSP/NL)*{
+   = WSP* scope:ScopeModifier? 
+     WSP* id:Identifier 
+     dtype:DatatypeExpression
+     attrib:AttributeExpression?
+     stereo:StereotypeExpression? EOS{
      return {
        type: "property",
        name: id,
        data_type: dtype,
-       attributes: extractOptional(attrib,1),
-       scope: extractOptional(scope,0),
-       stereotype: extractOptional(stereo,1)
+       attributes: attrib,
+       scope: scope,
+       stereotype: stereo
      }
    }
    
 AttributeExpression
-  = "{" list:AttributeBody "}" { return list; }
+  =   WSP* "{" text:LabelText "}" { return text; }
 
-AttributeBody 
-  = first:AttributeMembers rest:("," AttributeMembers)*  {
-    return buildList(first,rest,1)
-  }
-  
 AttributeMembers
   = item:$(WSP* Identifier)* WSP* {return item.trim() }
 
@@ -314,7 +288,7 @@ EnumMembers
 
 /*** Stereotype Expressions ***/
 StereotypeExpression 
-  = StereotypeOpenToken steroTypes:StereotypeTerm+ StereotypeCloseToken 
+  = WSP* StereotypeOpenToken steroTypes:StereotypeTerm+ StereotypeCloseToken 
   		{ return steroTypes }
 
 StereotypeTerm
@@ -327,8 +301,8 @@ StereotypeSpotExpression
   
 /* -----       Expressions          ----- */
 DatatypeExpression
-  = ArrayExpression
-  / Identifier
+  = WSP* (":" WSP*)?  dtype:(ArrayExpression / Identifier) 
+ 	 {return dtype}
   
 ArrayExpression
   = dtype:Identifier "[" size:$(DIGIT*)? "]"{
