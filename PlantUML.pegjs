@@ -25,8 +25,7 @@ FormattingElement
   / SetRenderElement
   
  DocFormatHide 
-  = HideToken WSP+ selector:$( (UMLObject (WSP* StereotypeExpression)?) / Annotation / EmptyLiteral ) 
-    WSP* element:$( "stereotype"/"method")? {
+  = HideToken WSP+ selector:DocFormatSelector WSP* element:$( "stereotype"/"method")? {
     return {
       type: "hide",
       selector: selector,
@@ -34,8 +33,11 @@ FormattingElement
     }
   }
 
+DocFormatSelector 
+  = $( ((ClassToken/EnumToken) StereotypeExpression?) / Annotation / EmptyLiteral ) 
+
 SetRenderElement
-  = SetToken WSP+ cmd:$(NSSepToken) WSP+ val:StringLiteral {
+  = SetToken WSP+ cmd:$(NSSepToken) val:StringLiteral {
     return {
       type:"set",
       command: cmd,
@@ -74,8 +76,8 @@ LegendAlignment
   = (WSP+ RelationHint)
 
 TitleBlock
-  = TitleToken WSP+ title:$((CHAR)+) 
-  		{ return { type: "title", text: title }; }
+  = TitleToken title:LabelText
+  		{ return { type: "title", text: title.trim() }; }
         
 NoteBlock
   = NoteToken body:StringLiteral name:Alias? EOS
@@ -150,7 +152,7 @@ PropertyExpression
    }
    
 AttributeExpression
-  =   WSP* "{" text:LabelText "}" { return text; }
+  =   WSP* "{" text:$(!"}".)+ "}" { return text; }
 
 AttributeMembers
   = item:$(WSP* Identifier)* WSP* {return item.trim() }
@@ -221,7 +223,7 @@ StereotypeExpression
   		{ return steroTypes }
 
 StereotypeTerm
-  = WSP* spot:StereotypeSpotExpression? id:$LabelText ","?
+  = WSP* spot:StereotypeSpotExpression? id:$(ALPHA/SP)+ ","?
   		{ return { name: id, spot: spot } }
 
 StereotypeSpotExpression
@@ -249,7 +251,7 @@ LabelExpression
  = WSP* ":" lbl:(StringLiteral/LabelText)  {return lbl}
 
 LabelText
-  = WSP* txt:$(ALPHA/SP)+ {return txt}
+  = WSP* txt:$(!NL.)+ {return txt}
  
 /* -----         Literals           ----- */
 StringLiteral "string"
