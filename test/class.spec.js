@@ -18,7 +18,7 @@ describe ('PlantUML Class Diagram', function() {
 	
 	describe('enum definition', function() {
 		it('empty defintion', function (){
-			var parsed = parser.parse('enum bar;');
+			var parsed = parser.parse('@startuml;\n enum bar;\n @enduml;');
 			
 			testIsSingleStatment(parsed);
 
@@ -30,7 +30,7 @@ describe ('PlantUML Class Diagram', function() {
 		});
 		
 		it('with members', function(){
-			var parsed = parser.parse('enum bar { RED; BLUE; GREEN; };');
+			var parsed = parser.parse('@startuml;\n enum bar { RED; BLUE; GREEN; };\n @enduml;');
 			expect(parsed[0]).with.deep.property('body[2]').to.be.an('object');
 			expect(parsed[0]).with.deep.property('body[2].type','enum member');
 			expect(parsed[0]).with.deep.property('body[2].name','GREEN');
@@ -49,21 +49,21 @@ describe ('PlantUML Class Diagram', function() {
 				// expect(parsed[0]).to.have.property('stereotype').that.is.undefined; 
 			}
 			it('name only', function() {
-				var parsed = parser.parse('class foo');
+				var parsed = parser.parse('@startuml;\n class foo;\n @enduml;');
 				
 				testIsSingleStatment(parsed);
 				testEmptyClassDefinition(parsed,'foo');
 			});
 			
 			it('name with namespace', function(){
-				var parsed = parser.parse('class baz.foo');
+				var parsed = parser.parse('@startuml;\n class baz.foo;\n @enduml;');
 				
 				testIsSingleStatment(parsed);
 				testEmptyClassDefinition(parsed,'baz.foo');
 			});
 			
 			it('name with namespce and stereotype', function(){
-				var parsed = parser.parse('class baz.foo<<table>>');
+				var parsed = parser.parse('@startuml;\n class baz.foo<<table>>;\n @enduml;');
 			
 				testIsSingleStatment(parsed);
 				testEmptyClassDefinition(parsed,'baz.foo');
@@ -86,7 +86,7 @@ describe ('PlantUML Class Diagram', function() {
 			}
 			
 			it('scalar property', function(){
-				var parsed = parser.parse('class baz.foo { id: int}');
+				var parsed = parser.parse('@startuml;\n class baz.foo { id: int};\n @enduml;');
 
 				testIsSingleStatment(parsed);
 				testClassDefinition(parsed,'baz.foo');
@@ -115,7 +115,7 @@ describe ('PlantUML Class Diagram', function() {
 			});
 			
 			it('method', function(){
-				var parsed = parser.parse('class baz.foo { void someMethod() }'); 
+				var parsed = parser.parse('@startuml;\n class baz.foo { void someMethod() };\n @enduml;'); 
 
 				testIsSingleStatment(parsed);
 				testClassDefinition(parsed,'baz.foo');
@@ -128,7 +128,7 @@ describe ('PlantUML Class Diagram', function() {
 			});
 			
 			it('stereotyped property', function(){
-				var parsed = parser.parse('class baz.foo { id: int <<PK,SK>>}');
+				var parsed = parser.parse('@startuml;\n class baz.foo { id: int <<PK,SK>>};\n @enduml;');
 				
 				testIsSingleStatment(parsed);
 				testClassDefinition(parsed,'baz.foo');
@@ -145,7 +145,7 @@ describe ('PlantUML Class Diagram', function() {
 			});
 			
 			it('array property', function(){
-				var parsed = parser.parse('class baz.foo { meh: char[254] }');
+				var parsed = parser.parse('@startuml;\n class baz.foo { meh: char[254] };\n @enduml;');
 				
 				testIsSingleStatment(parsed);
 				testClassDefinition(parsed,'baz.foo');
@@ -168,7 +168,7 @@ describe ('PlantUML Class Diagram', function() {
 			});
 			
 			it('scalar property with attribute', function(){
-				var parsed = parser.parse('class baz.foo { meh: int {NULL} }');
+				var parsed = parser.parse('@startuml;\n class baz.foo { meh: int {NULL} };\n @enduml;');
 				
 				testIsSingleStatment(parsed);
 				testClassDefinition(parsed,'baz.foo');
@@ -185,7 +185,7 @@ describe ('PlantUML Class Diagram', function() {
 			});
 			
 			it('not-nullable property', function(){
-				var parsed = parser.parse('class baz.foo { meh: int {NOT NULL} }');
+				var parsed = parser.parse('@startuml;\n class baz.foo { meh: int {NOT NULL} };\n @enduml;');
 				
 				testIsSingleStatment(parsed);
 				testClassDefinition(parsed,'baz.foo');
@@ -201,7 +201,7 @@ describe ('PlantUML Class Diagram', function() {
 			});
 			
 			it('stereotype property with attribute body', function(){
-				var parsed = parser.parse('class baz.foo { meh: int {NULL} <<FK>> }');
+				var parsed = parser.parse('@startuml;\n class baz.foo { meh: int {NULL} <<FK>> };\n @enduml;');
 				
 				testIsSingleStatment(parsed);
 				testClassDefinition(parsed,'baz.foo');
@@ -225,7 +225,8 @@ describe ('PlantUML Class Diagram', function() {
 		describe('Should parse full class', function() {
 			var parsed;
 			before(function(){
-				var text = 'class baz.foo<<table>>{ \n'
+				var text =  '@startuml;\n '
+							+'class baz.foo<<table>>{ \n'
 							+'id: int <<PK,SK>> \n'
 							+'some_other_table_id: int <<FK>> \n'
 							+'property_idx: tinyint \n'
@@ -233,7 +234,8 @@ describe ('PlantUML Class Diagram', function() {
 							+'property_class_id: int <<FK>> \n'
 							+'property_name: string \n'
 							+'property_value: string \n'
-							+'} \n';
+							+'} \n'
+							+'@enduml';
 				parsed = parser.parse(text);
 			});
 			
