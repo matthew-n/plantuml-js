@@ -1,0 +1,33 @@
+{
+  "name": "plantuml-js",
+  "version": "0.3.0",
+  "description": "Simple PlantUML parser written as a PEG.js grammar",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eldritch-fossicker/plantuml-js.git"
+  },
+  "keywords": [
+    "plantuml",
+    "grammar",
+    "pegjs",
+    "parser"
+  ],
+  "author": "Eldritch Fossicker",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/eldritch-fossicker/plantuml-js/issues"
+  },
+  "homepage": "https://github.com/eldritch-fossicker/plantuml-js#readme",
+  "dependencies": {
+    "chai": "^3.4.1",
+    "mocha": "^2.3.4",
+    "pegjs": "^0.9.0"
+  }
+}
