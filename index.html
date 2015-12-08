@@ -33,7 +33,7 @@
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/1.2.0/semantic.min.css">
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/1.2.0/semantic.min.js"></script>
 	
-	<script src="peg-0.8.0.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/pegjs/0.9.0/peg.min.js"></script>
 
 </head>
 
@@ -71,15 +71,15 @@
 		<div class="dynamic example">
 			<h4 class="header">Code Samples:</h4>
 			<div class="ui top attached tabular menu">
-				<a class="item" data-tab="activity.html">Activity</a>				
-				<a class="item" data-tab="class.html">Class</a>				
+				<a class="item" data-tab="activity.html">Activity</a>
+				<a class="item" data-tab="class.html">Class</a>
 				<a class="item" data-tab="use_case.html">Use Case</a>
 				<a class="item" data-tab="component.html">Component</a>
 				<a class="item" data-tab="annotation.html">Annotation</a>
 			</div>
 		
-			<div class="ui bottom attached tab segment" data-tab="activity.html"></div>				
-			<div class="ui bottom attached tab segment" data-tab="class.html"></div>				
+			<div class="ui bottom attached tab segment" data-tab="activity.html"></div>
+			<div class="ui bottom attached tab segment" data-tab="class.html"></div>
 			<div class="ui bottom attached tab segment" data-tab="use_case.html"></div>
 			<div class="ui bottom attached tab segment" data-tab="component.html"></div>
 			<div class="ui bottom attached tab segment" data-tab="annotation.html"></div>
@@ -98,7 +98,7 @@
 	$(function()
 	{
 		$.ajax({
-			url : "PlantUML.pegjs",
+			url : "src/PlantUML.pegjs",
 			dataType: "text",
 			success : function (data) {
 				$("#grammar textarea").text(data);
@@ -124,7 +124,7 @@
 
 				try {
 					// Run the example code.
-					var result = parser.parse(exampleCode.text())
+					var result = parser.parse('@startuml\n'+exampleCode.text()+'\n@enduml')
 
 					var resultNode = $('<td><pre><code class="json"></code></pre></td>')
 

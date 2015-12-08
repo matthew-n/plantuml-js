@@ -1,8 +1,17 @@
+/*
+ * PlantUML gramar
+ *
+ *
+ *
+ *
+ *
+*/
+
 start
- = (instructions)+
+ = "@startuml" stmts:(instructions)+ "@enduml" {return stmts}
  
 instructions
- = (WSP/NL)* foo:instruction EOS? {return foo}
+ = (WSP/NL)* stmt:instruction EOS? {return stmt}
  
 instruction
   = UMLStatment
@@ -24,7 +33,7 @@ FormattingElement
   = DocFormatHide
   / SetRenderElement
   
- DocFormatHide 
+ DocFormatHide
   = HideToken WSP+ selector:DocFormatSelector WSP* element:$( "stereotype"/"method")? {
     return {
       type: "hide",
@@ -174,7 +183,7 @@ AttributeMembers
     };
   }
 
-RelationMember
+RelationMember 
   = WSP* lhs:Identifier card:StringLiteral? {return {ref:lhs, cardinality:card}}
   / card:StringLiteral? WSP* rhs:Identifier  {return {ref:rhs, cardinality:card}}
   
