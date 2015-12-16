@@ -7,10 +7,10 @@
  *
 */
 
-start
+start 
  = DocStart EOS stmts:(instructions)+ EOS DocEnd {return stmts}
  
-instructions
+instructions "PlantUML statement"
  = (WSP/NL)* stmt:instruction EOS? {return stmt}
  
 instruction
@@ -63,19 +63,19 @@ AnnotaionElement
   / NoteBlock
   / LegendBlock
  
-HeaderBlock
+HeaderBlock "Document Header"
   = align:HAlignment? HeaderToken 
     body:$( !EndHeaderToken .)+
     EndHeaderToken 
   		{ return { type: "header", body: body.trim(), alignment: align }}
   
-FooterBlock
+FooterBlock "Document Footer"
   = align:HAlignment? FooterToken 
     body:$( !EndFooterToken .)+
     EndFooterToken 
   		{ return { type: "footer", body: body.trim(), alignment: align } }
 
-LegendBlock
+LegendBlock "Document Legend"
   = LegendToken align:LegendAlignment? 
   	txt:$( !EndLegendToken .)+  
     EndLegendToken 
@@ -84,11 +84,11 @@ LegendBlock
 LegendAlignment 
   = (WSP+ RelationHint)
 
-TitleBlock
+TitleBlock "Document Tile"
   = TitleToken title:LabelText
   		{ return { type: "title", text: title.trim() }; }
         
-NoteBlock
+NoteBlock "Note Annotation"
   = NoteToken body:StringLiteral name:Alias? EOS
 		{ return { type: "note", body: body,  alias: name };  } 
   /
@@ -116,7 +116,7 @@ NoteAlign
    		{return { ref:id, direction:align}}
 
 /*** Other ***/
-ConstantDefinition
+ConstantDefinition "PlantUML Preprocessor Define"
  = "!define" WSP+ key:Identifier WSP+ sub:$(SourceCharacter+) {
     return {
       type: "define",
@@ -125,26 +125,26 @@ ConstantDefinition
     };
   }
 
-Comment
+Comment "Comment Line"
   = SQUOTE comment:$(SourceCharacter*) {
       return {type:"comment", text:comment};
     }
 
 
 /*** class expressions **/
-ClassDeclaration
+ClassDeclaration "Class Definition"
   = ClassToken WSP+ id:Identifier stereotype:StereotypeExpression? body:ClassBody?	
   		{ return { type: "class", id: id, body: body, stereotype: stereotype } }
 
-ClassBody
+ClassBody "Class Body"
  = WSP* "{" (NL/WSP)* member:(MethodExpression/PropertyExpression)* "}"  EOS 
 		{return member}
 
-MethodExpression
+MethodExpression "Class Method"
   = WSP* scope:ScopeModifier? dtype:DatatypeExpression WSP+ id:Identifier WSP* "()"  EOS
 		{ return { type: "method", name: id, data_type: dtype, scope: scope } }
   
-PropertyExpression
+PropertyExpression "Class Propery"
    = WSP* scope:ScopeModifier? 
      WSP* id:Identifier 
      dtype:DatatypeExpression
@@ -168,7 +168,7 @@ AttributeMembers
 
 
 /** Relation Expression**/ 
- ElementRelationship
+ ElementRelationship "Relationship Expression"
   = lhs:RelationMember rel:RelationExpression 
     rhs:RelationMember lbl:LabelExpression? 
     WSP* arrow:(RightArrowToken / LeftArrowToken)? WSP* EOS
@@ -428,7 +428,7 @@ SQUOTE
   
 NL = (CRLF/CR/LF)
   
-EOS
+EOS "EOS"
   = ( ";"?(WSP/NL)*
      / !(";").
     ) {}
