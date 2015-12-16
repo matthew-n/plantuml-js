@@ -8,7 +8,7 @@ describe('PlantUML Preprocessor Commands', function() {
 	
 	before(function(){
 		var grammar;
-		grammar = fs.readFileSync('./PlantUML.pegjs', 'utf8');
+		grammar = fs.readFileSync('./src/PlantUML.pegjs', 'utf8');
 		parser = PEG.buildParser(grammar);
 	});
 	

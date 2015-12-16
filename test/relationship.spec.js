@@ -6,7 +6,7 @@ describe('PlantUML Relationships', function() {
 
 	var	parser;
 	before(function(){
-		var grammar = fs.readFileSync('./PlantUML.pegjs', 'utf8');
+		var grammar = fs.readFileSync('./src/PlantUML.pegjs', 'utf8');
 		parser = PEG.buildParser(grammar);
 	});
 
