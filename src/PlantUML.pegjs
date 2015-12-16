@@ -8,7 +8,7 @@
 */
 
 start
- = "@startuml" stmts:(instructions)+ "@enduml" {return stmts}
+ = DocStart EOS stmts:(instructions)+ EOS DocEnd {return stmts}
  
 instructions
  = (WSP/NL)* stmt:instruction EOS? {return stmt}
@@ -331,6 +331,9 @@ Annotation
 RelationHint = UpToken / DownToken / LeftToken / RightToken
 
 HAlignment = CenterToken / LeftToken / RightToken
+
+DocStart "Start of PlantUML Document" = "@startuml"
+DocEnd "End of PlantUML Document" = "@enduml"
 
 UpToken     = "up"i       !IdentifierPart
 DownToken   = "down"i     !IdentifierPart

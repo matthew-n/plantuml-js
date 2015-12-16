@@ -14,30 +14,30 @@ describe('PlantUML Preprocessor Commands', function() {
 	
 	describe.skip('Include', function(){
 		it('local file', function(){
-			var parsed = parser.parse('!include foo.txt');
+			var parsed = parser.parse('@startuml; !include foo.txt; @enduml');
 		});
 		
 		it('local file subsection', function(){
-			var parsed = parser.parse('!include foo.txt!1');
+			var parsed = parser.parse('@startuml; !include foo.txt!1; @enduml');
 		});
 		
 		it('url file', function(){
-			var parsed = parser.parse('!includeurl http://localhost/foo.txt');
+			var parsed = parser.parse('!includeurl http://localhost/foo.txt; @enduml');
 		});
 	});
 	
 	describe('constant definitions', function(){
 		
 		it('simple replacement', function(){
-			var parsed = parser.parse('!define table Database Table;');
+			var parsed = parser.parse('@startuml; !define table Database Table\n @enduml');
 		});
 		
 		it('full stereotype', function(){
-			var parsed = parser.parse('!define table (T,PowderBlue)Database Table');
+			var parsed = parser.parse('@startuml; !define table (T,PowderBlue)Database Table\n @enduml');
 		});
 		
 		it('tags', function(){
-			var parsed = parser.parse('!define PK <color:orange>  <&key></color>;');
+			var parsed = parser.parse('@startuml; !define PK <color:orange>  <&key></color>\n @enduml');
 		});
 		
 	});	// end constant definitions 
