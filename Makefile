@@ -2,6 +2,7 @@ all: pegjs js test
 
 pegjs:
 	mkdir -p lib
+	cat `bin/tree.sh src/plantuml-js.pegjs src/` > lib/plantuml-js.pegjs
 	
 js:
 	mkdir -p dist
