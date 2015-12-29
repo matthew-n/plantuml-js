@@ -8,8 +8,8 @@ describe.skip('PlantUML Activity Diagram - beta syntax', function() {
 	
 	before(function(){
 		var grammar;
-		grammar = fs.readFileSync('./src/PlantUML.pegjs', 'utf8');
-		parser = PEG.buildParser(grammar);
+		grammar = fs.readFileSync('./lib/plantuml-js.pegjs', 'utf8');
+		parser = PEG.buildParser(grammar, { allowedStartRules: ["start"] });
 	});
 	
 	describe('parses basic document',function(){
