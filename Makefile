@@ -1,17 +1,13 @@
-all: pegjs js test
+BIN = "./node_modules/.bin"
 
-pegjs:
-	mkdir -p lib
-	cat `bin/tree.sh src/plantuml-js.pegjs src/` > lib/plantuml-js.pegjs
-	
-js:
-	mkdir -p dist
-	node_modules/.bin/pegjs --allowed-start-rules start lib/plantuml-js.pegjs dist/plantuml-js.js
+build: grammar
+	@mkdir -p dist
+	@mkdir -p lib
+	@cat `./bin/tree.sh src/plantuml-js.pegjs src/` > lib/plantuml-js.pegjs
+	@$(BIN)/pegjs --allowed-start-rules start lib/plantuml-js.pegjs dist/plantuml-js.js
 
-test:
-	mocha -c
-	
+test: build
+	@$(BIN)/mocha -c
+
 clean:
-	rm -rf lib dist
-	
-.PHONY: all pegjs js test
+	@rm -rf lib dist

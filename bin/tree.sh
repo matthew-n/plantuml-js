@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 
 FILE=$1

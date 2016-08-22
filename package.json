@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/eldritch-fossicker/plantuml-js.git"
+    "url": "git+https://github.com/matthew-n/plantuml-js.git"
   },
   "keywords": [
     "plantuml",
@@ -19,12 +19,12 @@
     "pegjs",
     "parser"
   ],
-  "author": "Eldritch Fossicker",
+  "author": "Matthew Naul",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/eldritch-fossicker/plantuml-js/issues"
+    "url": "https://github.com/matthew-n/plantuml-js/issues"
   },
-  "homepage": "https://github.com/eldritch-fossicker/plantuml-js#readme",
+  "homepage": "https://github.com/matthew-n/plantuml-js#readme",
   "dependencies": {
     "chai": "^3.4.1",
     "mocha": "^2.3.4",
