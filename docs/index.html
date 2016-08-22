@@ -71,18 +71,18 @@
 		<div class="dynamic example">
 			<h4 class="header">Code Samples:</h4>
 			<div class="ui top attached tabular menu">
-				<a class="item" data-tab="activity.html">Activity</a>
-				<a class="item" data-tab="class.html">Class</a>
-				<a class="item" data-tab="use_case.html">Use Case</a>
-				<a class="item" data-tab="component.html">Component</a>
-				<a class="item" data-tab="annotation.html">Annotation</a>
+				<a class="item" data-tab="test/activity.html">Activity</a>
+				<a class="item" data-tab="test/class.html">Class</a>
+				<a class="item" data-tab="test/use_case.html">Use Case</a>
+				<a class="item" data-tab="test/component.html">Component</a>
+				<a class="item" data-tab="test/annotation.html">Annotation</a>
 			</div>
 		
-			<div class="ui bottom attached tab segment" data-tab="activity.html"></div>
-			<div class="ui bottom attached tab segment" data-tab="class.html"></div>
-			<div class="ui bottom attached tab segment" data-tab="use_case.html"></div>
-			<div class="ui bottom attached tab segment" data-tab="component.html"></div>
-			<div class="ui bottom attached tab segment" data-tab="annotation.html"></div>
+			<div class="ui bottom attached tab segment" data-tab="test/activity.html"></div>
+			<div class="ui bottom attached tab segment" data-tab="test/class.html"></div>
+			<div class="ui bottom attached tab segment" data-tab="test/use_case.html"></div>
+			<div class="ui bottom attached tab segment" data-tab="test/component.html"></div>
+			<div class="ui bottom attached tab segment" data-tab="test/annotation.html"></div>
 		</div>
 		
 
@@ -98,7 +98,7 @@
 	$(function()
 	{
 		$.ajax({
-			url : "src/PlantUML.pegjs",
+			url : "plantuml-js.pegjs",
 			dataType: "text",
 			success : function (data) {
 				$("#grammar textarea").text(data);
@@ -113,7 +113,7 @@
 	  .tab({
 		context : '.dynamic.example',
 		auto    : true,
-		path    : '/test',
+		path    : 'test',
 		history: true,
 		onTabLoad: function()
 		{

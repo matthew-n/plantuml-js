@@ -1,6 +1,6 @@
 BIN = "./node_modules/.bin"
 
-build: grammar
+build:
 	@mkdir -p dist
 	@mkdir -p lib
 	@cat `./bin/tree.sh src/plantuml-js.pegjs src/` > lib/plantuml-js.pegjs
@@ -8,6 +8,9 @@ build: grammar
 
 test: build
 	@$(BIN)/mocha -c
+	
+docs: build
+	@cp lib/plantuml-js.pegjs docs/
 
 clean:
 	@rm -rf lib dist
