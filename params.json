@@ -1,0 +1,6 @@
+{
+  "name": "Plantuml-js",
+  "tagline": "PlantUML with 100% less JAVA",
+  "body": "### PlantUML-JS\r\nA simple pegjs parser for PlantUML. \r\n\r\nJust that, no more, no less.\r\n\r\n### Authors and Contributors\r\nI'm @matthew-n and when I'm not doing this I'm Database Admin. So, please be kind with your criticisms and pull requests are very welcome.\r\n\r\n### Support or Contact\r\nFound a bug or a feature I missed go ahead and leave a [issue](https://github.com/matthew-n/plantuml-js/issues).\r\n",
+  "note": "Don't delete this file! It's used internally to help with page regeneration."
+}
