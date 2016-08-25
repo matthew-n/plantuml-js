@@ -1,15 +1,12 @@
 BIN = "./node_modules/.bin"
 
 build:
-	@mkdir -p dist
-	@cat `./bin/tree.sh grammar/plantuml-js.pegjs grammar/` > grammar/temp.pegjs
-	@$(BIN)/pegjs --allowed-start-rules start grammar/temp.pegjs lib/parser.js
+	mkdir -p dist
+	cat `./bin/tree.sh grammar/plantuml-js.pegjs grammar/` >> temp.pegjs
+	$(BIN)/pegjs --allowed-start-rules start temp.pegjs lib/parser.js
 
 test: build
-	@$(BIN)/mocha -c
+	$(BIN)/mocha -c
 	
-docs: build
-	@cp lib/plantuml-js.pegjs docs/
-
 clean:
-	@rm -rf lib dist
+	rm -rf dist temp.pegjs lib/parser.js

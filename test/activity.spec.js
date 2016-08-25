@@ -1,17 +1,11 @@
+"use strict";
+
 var expect =  require('chai').expect;
-var fs = require('fs');
 var PEG = require('pegjs');
+var parser = require('../lib/parser');
 
 describe.skip('PlantUML Activity Diagram - classic syntax', function() {
 
-	var	parser;
-	
-	before(function(){
-		var grammar;
-		grammar = fs.readFileSync('./lib/plantuml-js.pegjs', 'utf8');
-		parser = PEG.buildParser(grammar, { allowedStartRules: ["start"] });
-	});
-	
 	describe('parses basic document',function(){
 		it('named source and destination',function(){
 			var parsed = parser.parse('(*) --> "some activity" \n "some activity" --> (*)\n');

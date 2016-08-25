@@ -1,17 +1,11 @@
+"use strict";
+
 var expect =  require('chai').expect;
-var fs = require('fs');
 var PEG = require('pegjs');
+var parser = require('../lib/parser');
 
 describe('PlantUML Preprocessor Commands', function() {
 
-	var	parser;
-	
-	before(function(){
-		var grammar;
-		grammar = fs.readFileSync('./lib/plantuml-js.pegjs', 'utf8');
-		parser = PEG.buildParser(grammar, { allowedStartRules: ["start"] });
-	});
-	
 	describe.skip('Include', function(){
 		it('local file', function(){
 			var parsed = parser.parse('@startuml !include foo.txt; @enduml');

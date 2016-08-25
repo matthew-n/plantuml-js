@@ -1,17 +1,11 @@
+"use strict";
+
 var expect =  require('chai').expect;
-var fs = require('fs');
 var PEG = require('pegjs');
+var parser = require('../lib/parser');
 
 describe('PlantUML Diagram Annotations', function() {
 
-	var	parser;
-	
-	before(function(){
-		var grammar;
-		grammar = fs.readFileSync('./lib/plantuml-js.pegjs', 'utf8');
-		parser = PEG.buildParser(grammar, { allowedStartRules: ["start"] });
-	});
-	
 	describe('Singleton Annotaitons', function(){
 		it('header', function(){
 			var parsed = parser.parse('@startuml\n Header My Project Docs endheader\n@enduml');

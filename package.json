@@ -1,7 +1,7 @@
 {
   "name": "plantuml-js",
   "version": "0.3.0",
-  "description": "Simple PlantUML parser written as a PEG.js grammar",
+  "description": "Simple PEG.js grammar for PlantUML",
   "main": "index.js",
   "directories": {
     "test": "test"
@@ -26,8 +26,14 @@
   },
   "homepage": "https://github.com/matthew-n/plantuml-js#readme",
   "dependencies": {
-    "chai": "^3.4.1",
-    "mocha": "^2.3.4",
     "pegjs": "^0.9.0"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "grunt": "^1.0.1",
+    "grunt-contrib-clean": "^1.0.0",
+    "grunt-contrib-watch": "^1.0.0",
+    "grunt-peg": "^2.0.1",
+    "mocha": "^3.0.2"
   }
 }

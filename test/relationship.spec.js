@@ -1,14 +1,10 @@
+"use strict";
+
 var expect =  require('chai').expect;
-var fs = require('fs');
 var PEG = require('pegjs');
+var parser = require('../lib/parser');
 
 describe('PlantUML Relationships', function() {
-
-	var	parser;
-	before(function(){
-		var grammar = fs.readFileSync('./lib/plantuml-js.pegjs', 'utf8');
-		parser = PEG.buildParser(grammar, { allowedStartRules: ["start"] });
-	});
 
 	describe('basic relationships', function(){
 		
